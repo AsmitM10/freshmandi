@@ -1,0 +1,35 @@
+/// Values that are NOT defined by the Figma spec and are not sourced from
+/// Supabase config. Centralized here, clearly marked, so each can be
+/// changed in one place if product/business requirements pin them down later.
+class AppConfig {
+  AppConfig._();
+
+  /// Supabase's phone/SMS OTP is a fixed 6-digit code (not configurable via
+  /// the dashboard) — the Figma spec's 5-box OTP design cannot hold a 6-digit
+  /// code. Resolved with the user: switch to 6 boxes, otherwise identical
+  /// Figma styling. See lib/shared/widgets/fm_otp_input.dart.
+  static const int otpLength = 6;
+
+  /// Not specified in Figma. Minimal cooldown to stop resend-button spam;
+  /// Supabase also enforces its own server-side OTP rate limit independently.
+  static const int otpResendCooldownSeconds = 30;
+
+  static const int fssaiMaxSizeBytes = 2 * 1024 * 1024; // 2 MB
+
+  static const int restaurantNameMinLength = 2;
+  static const int restaurantNameMaxLength = 100;
+
+  static const int ownerNameMinLength = 2;
+  static const int ownerNameMaxLength = 100;
+
+  static const int phoneDigitLength = 10;
+
+  /// Minimum time the splash screen stays visible, regardless of how fast
+  /// the session check resolves. Product requirement: exactly 3 seconds.
+  static const Duration splashMinDuration = Duration(seconds: 3);
+
+  /// Identifies which revision of the Terms & Conditions copy a restaurant
+  /// agreed to (mirrors the "Last Updated" date shown on the T&C screen).
+  /// Bump this if the terms copy ever changes materially.
+  static const String termsVersion = 'v1-2026-07-22';
+}

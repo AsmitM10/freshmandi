@@ -1,0 +1,13 @@
+-- Fix: profiles.phone_number is an auto-populated mirror of auth.users.phone
+-- (written by the handle_new_auth_user trigger), and Supabase Auth stores
+-- that value WITHOUT a leading "+" (e.g. "911234567890"). The original
+-- profiles_phone_format constraint required a "+91..." E.164 shape, which
+-- rejected every real signup and broke the auth.users insert transaction
+-- entirely (visible as a 500 on POST /auth/v1/otp).
+--
+-- profiles.phone_number is informational only — the app's real phone
+-- validation (E.164, +91, uniqueness) lives on restaurants.phone_number,
+-- which the client fully controls via Validators.toE164. So this column
+-- doesn't need its own strict format check; drop it rather than trying to
+-- guess GoTrue's exact format across all cases.
+alter table public.profiles drop constraint if exists profiles_phone_format;
