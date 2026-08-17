@@ -22,15 +22,24 @@ import '../../../../shared/widgets/fm_primary_button.dart';
 /// text reads "Date and Privacy", flagged there as a likely typo. Same
 /// handling as the "RESTURANT NAME" label: corrected here, flagged here,
 /// not silently carried forward.
+///
+/// [readOnly] reuses this exact UI for Settings > Terms and Conditions —
+/// same hero/last-updated/terms-card content the restaurant already agreed
+/// to at registration, minus the interactive checkbox + "Proceed to
+/// Register" button (which don't apply to an already-registered user
+/// revisiting this from Settings). The agreement row instead shows as
+/// already checked, non-interactively, since they already agreed once.
 class TermsAndConditionsScreen extends StatefulWidget {
-  const TermsAndConditionsScreen({super.key});
+  const TermsAndConditionsScreen({super.key, this.readOnly = false});
+
+  final bool readOnly;
 
   @override
   State<TermsAndConditionsScreen> createState() => _TermsAndConditionsScreenState();
 }
 
 class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
-  bool _agreed = false;
+  late bool _agreed = widget.readOnly;
 
   static const List<(String title, String body)> _rows = [
     (
@@ -97,13 +106,15 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                     const SizedBox(height: 16),
                     _AgreementRow(
                       agreed: _agreed,
-                      onToggle: () => setState(() => _agreed = !_agreed),
+                      onToggle: widget.readOnly ? null : () => setState(() => _agreed = !_agreed),
                     ),
-                    const SizedBox(height: 16),
-                    FMPrimaryButton(
-                      label: 'Proceed to Register',
-                      onPressed: _agreed ? _proceed : null,
-                    ),
+                    if (!widget.readOnly) ...[
+                      const SizedBox(height: 16),
+                      FMPrimaryButton(
+                        label: 'Proceed to Register',
+                        onPressed: _agreed ? _proceed : null,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -376,7 +387,7 @@ class _AgreementRow extends StatelessWidget {
   const _AgreementRow({required this.agreed, required this.onToggle});
 
   final bool agreed;
-  final VoidCallback onToggle;
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {

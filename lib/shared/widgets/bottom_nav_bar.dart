@@ -11,11 +11,9 @@ import '../../core/theme/app_text_styles.dart';
 /// button. All four tab icons are the real Vuesax SVGs exported from
 /// Figma (assets/icons/nav_*.svg).
 ///
-/// Active tabs use a genuinely different filled-icon SVG, not a tinted
-/// copy of the outline icon — Home has both variants (nav_home.svg filled,
-/// nav_home_outline.svg outline). Shop/History/Settings only have the
-/// outline variant so far (still tinted navy/gray as a stand-in) until
-/// their filled versions are exported from Figma too.
+/// Every tab's active state is a genuinely different filled-icon SVG, not
+/// a tinted copy of the outline icon (nav_home.svg / nav_home_outline.svg,
+/// nav_shop_filled.svg / nav_shop.svg, and so on).
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({
     super.key,
@@ -58,7 +56,6 @@ class BottomNavBar extends StatelessWidget {
                         label: 'Home',
                         isActive: currentIndex == 0,
                         onTap: () => onTabSelected(0),
-                        tintColor: false,
                       ),
                     ),
                     Expanded(
@@ -69,7 +66,6 @@ class BottomNavBar extends StatelessWidget {
                         label: 'Shop',
                         isActive: currentIndex == 1,
                         onTap: () => onTabSelected(1),
-                        tintColor: false,
                       ),
                     ),
                     const SizedBox(
@@ -83,12 +79,13 @@ class BottomNavBar extends StatelessWidget {
                         label: 'History',
                         isActive: currentIndex == 2,
                         onTap: () => onTabSelected(2),
-                        tintColor: false,
                       ),
                     ),
                     Expanded(
                       child: _NavItem(
-                        svgAsset: 'assets/icons/nav_settings.svg',
+                        svgAsset: currentIndex == 3
+                            ? 'assets/icons/nav_settings_filled.svg'
+                            : 'assets/icons/nav_settings.svg',
                         label: 'Settings',
                         isActive: currentIndex == 3,
                         onTap: () => onTabSelected(3),
@@ -112,20 +109,12 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.isActive,
     required this.onTap,
-    this.tintColor = true,
   });
 
   final String svgAsset;
   final String label;
   final bool isActive;
   final VoidCallback onTap;
-
-  /// When the icon has its own real active/inactive SVG variants (each
-  /// already authored with the right colors baked in — see Home/Shop/
-  /// History), the raw SVG is rendered untouched. When only one outline
-  /// SVG exists for both states (Settings, for now), it's tinted navy/gray
-  /// as a stand-in until its filled variant is exported from Figma too.
-  final bool tintColor;
 
   @override
   Widget build(BuildContext context) {
@@ -140,12 +129,7 @@ class _NavItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset(
-              svgAsset,
-              width: 24,
-              height: 24,
-              colorFilter: tintColor ? ColorFilter.mode(color, BlendMode.srcIn) : null,
-            ),
+            SvgPicture.asset(svgAsset, width: 24, height: 24),
             const SizedBox(height: 6),
             Text(label, style: AppTextStyles.navLabel.copyWith(color: color)),
           ],

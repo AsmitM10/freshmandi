@@ -69,4 +69,9 @@ class AppColors {
   // ---------------------------------------------------------------------
   static const Color labelGray = Color(0xFF707070); // "ORDER NO.", "ITEMS" etc.
   static const Color invoiceGreen = Color(0xFF2A8531); // invoice total amount
+
+  /// "Paid" status badge fill — brighter/more saturated than [accentGreen]
+  /// (used for "Live" text and similar accents), per the pill-button order
+  /// card redesign.
+  static const Color statusPaidGreen = Color(0xFF3DF574);
 }

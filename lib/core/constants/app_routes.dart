@@ -6,6 +6,10 @@ class AppRoutes {
   static const String splash = '/splash';
   static const String welcome = '/welcome';
   static const String terms = '/terms';
+
+  // Same screen as [terms] (read-only mode) — reached from Settings by an
+  // already-registered user revisiting what they agreed to.
+  static const String termsView = '/terms-view';
   static const String register = '/register';
   static const String login = '/login';
 
@@ -33,6 +37,12 @@ class AppRoutes {
   // Shown when Place Order fails (network/server error) — same shell-less
   // treatment; the error message is passed via `extra`, not the URL.
   static const String orderFailure = '/order-failure';
+
+  // Reached from Settings — same shell-less treatment (own back button).
+  static const String businessDetails = '/business-details';
+  static const String privacyPolicy = '/privacy-policy';
+  static const String aboutUs = '/about-us';
+  static const String returnOrder = '/return-order';
 
   static const Set<String> statusGatedRoutes = {
     pendingApproval,

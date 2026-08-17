@@ -5,6 +5,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../items/domain/catalog_item.dart';
 import '../../../items/presentation/providers/items_providers.dart';
 import '../../data/orders_repository.dart';
+import '../../data/payments_repository.dart';
 import '../../domain/history_tab.dart';
 import '../../domain/order_history_entry.dart';
 import '../../domain/order_line_item.dart';
@@ -12,6 +13,10 @@ import 'cart_providers.dart';
 
 final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
   return OrdersRepository(ref.watch(supabaseClientProvider));
+});
+
+final paymentsRepositoryProvider = Provider<PaymentsRepository>((ref) {
+  return PaymentsRepository(ref.watch(supabaseClientProvider));
 });
 
 /// Builds order lines from the current cart + already-cached catalog and

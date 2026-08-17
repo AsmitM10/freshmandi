@@ -9,8 +9,8 @@ import '../../../../shared/widgets/empty_state.dart';
 import '../../../orders/domain/history_tab.dart';
 import '../../../orders/domain/order_history_entry.dart';
 import '../../../orders/presentation/providers/orders_providers.dart';
+import '../widgets/order_primary_action.dart';
 import '../widgets/order_summary_card.dart';
-import '../widgets/repeat_order_button.dart';
 
 /// History screen: three tabs (All Orders / Transaction / Pending
 /// Invoice), each independently paginated (see HistoryController) so
@@ -203,7 +203,7 @@ class _OrderCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(child: RepeatOrderButton(orderId: entry.orderId, filled: true)),
+          Expanded(child: OrderPrimaryAction(entry: entry)),
         ],
       ),
     );

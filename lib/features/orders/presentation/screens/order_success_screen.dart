@@ -10,8 +10,8 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../history/presentation/widgets/order_items_card.dart';
+import '../../../history/presentation/widgets/order_primary_action.dart';
 import '../../../history/presentation/widgets/order_summary_card.dart';
-import '../../../history/presentation/widgets/repeat_order_button.dart';
 import '../providers/orders_providers.dart';
 
 /// Shown once, right after Place Order succeeds — the same summary +
@@ -99,7 +99,7 @@ class OrderSuccessScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(child: RepeatOrderButton(orderId: orderId, filled: true)),
+                          Expanded(child: OrderPrimaryAction(entry: summary)),
                         ],
                       ),
                     ),

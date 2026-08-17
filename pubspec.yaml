@@ -44,6 +44,9 @@ dependencies:
   google_fonts: ^8.2.1
   cached_network_image: ^3.4.1
   intl: ^0.20.2
+  razorpay_flutter: ^1.4.0
+  gal: ^2.3.1
+  web: ^1.1.0
 
 # NOTE: file_picker's Windows implementation is pinned to win32 ^5.9.0 while
 # flutter_secure_storage's Windows implementation requires win32 ^6.0.1. This app

@@ -14,6 +14,10 @@ import '../../features/items/presentation/screens/shop_screen.dart';
 import '../../features/orders/presentation/screens/cart_screen.dart';
 import '../../features/orders/presentation/screens/order_failure_screen.dart';
 import '../../features/orders/presentation/screens/order_success_screen.dart';
+import '../../features/settings/presentation/screens/about_us_screen.dart';
+import '../../features/settings/presentation/screens/business_details_screen.dart';
+import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
+import '../../features/settings/presentation/screens/return_order_screen.dart';
 import '../../features/registration/presentation/screens/registration_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../constants/app_config.dart';
@@ -117,6 +121,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ? state.extra as String
               : 'Something went wrong. Please try again.',
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.businessDetails,
+        builder: (context, state) => const BusinessDetailsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.termsView,
+        builder: (context, state) => const TermsAndConditionsScreen(readOnly: true),
+      ),
+      GoRoute(
+        path: AppRoutes.privacyPolicy,
+        builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.aboutUs,
+        builder: (context, state) => const AboutUsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.returnOrder,
+        builder: (context, state) => const ReturnOrderScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

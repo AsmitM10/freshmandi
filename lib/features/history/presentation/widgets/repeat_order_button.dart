@@ -77,12 +77,9 @@ class _RepeatOrderButtonState extends ConsumerState<RepeatOrderButton> {
     return Container(
       height: 38,
       decoration: BoxDecoration(
-        color: widget.filled ? AppColors.secondary : AppColors.background,
+        color: widget.filled ? AppColors.secondary : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.secondary),
-        boxShadow: const [
-          BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 2)),
-        ],
+        border: widget.filled ? null : Border.all(color: AppColors.secondary),
       ),
       child: Material(
         color: Colors.transparent,
@@ -104,8 +101,8 @@ class _RepeatOrderButtonState extends ConsumerState<RepeatOrderButton> {
                     style: TextStyle(
                       color: widget.filled ? AppColors.ctaText : AppColors.secondary,
                       fontSize: 14,
-                      fontFamily: AppTextStyles.fontFamily,
-                      fontWeight: FontWeight.w700,
+                      fontFamily: AppTextStyles.urbanistFontFamily,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
           ),
