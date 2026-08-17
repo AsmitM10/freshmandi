@@ -22,6 +22,18 @@ class AppRoutes {
   static const String history = '/history';
   static const String settings = '/settings';
 
+  // Pushed outside the bottom-nav shell (own back button + voice icon in
+  // its header, no bottom nav bar), per the Figma reference.
+  static const String cart = '/cart';
+
+  // Shown once, right after a successful Place Order — also outside the
+  // shell (own back button, no bottom nav).
+  static const String orderSuccess = '/order-success';
+
+  // Shown when Place Order fails (network/server error) — same shell-less
+  // treatment; the error message is passed via `extra`, not the URL.
+  static const String orderFailure = '/order-failure';
+
   static const Set<String> statusGatedRoutes = {
     pendingApproval,
     accountRejected,

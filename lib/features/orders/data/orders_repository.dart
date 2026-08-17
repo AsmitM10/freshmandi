@@ -43,6 +43,17 @@ class OrdersRepository {
     }
   }
 
+  /// Single-order summary for the Invoice/Order Detail screen — same
+  /// `order_history` view as the list, filtered to one row.
+  Future<OrderHistoryEntry> fetchOrderSummary(String orderId) async {
+    try {
+      final row = await _client.from('order_history').select().eq('order_id', orderId).single();
+      return OrderHistoryEntry.fromMap(row);
+    } catch (error) {
+      throw mapErrorToAppException(error);
+    }
+  }
+
   Future<List<OrderLineItem>> fetchOrderItems(String orderId) async {
     try {
       final rows = await _client
@@ -51,6 +62,40 @@ class OrdersRepository {
           .eq('order_id', orderId)
           .order('created_at');
       return rows.map(OrderLineItem.fromMap).toList();
+    } catch (error) {
+      throw mapErrorToAppException(error);
+    }
+  }
+
+  /// Creates a real order from the cart: one `orders` row (status defaults
+  /// to 'submitted' — see the migration), then one `order_items` row per
+  /// line, each snapshotting the item's current name/unit rather than a
+  /// live reference. `restaurantId` must be the caller's own restaurant
+  /// (resolved by the caller via `auth.uid()`, same as everywhere else) —
+  /// RLS still rejects any other id regardless. No price is ever written
+  /// here or anywhere on these two tables.
+  Future<String> placeOrder({
+    required String restaurantId,
+    required List<OrderLineItem> lines,
+  }) async {
+    try {
+      final orderRow = await _client
+          .from('orders')
+          .insert({'restaurant_id': restaurantId})
+          .select('id')
+          .single();
+      final orderId = orderRow['id'] as String;
+      await _client.from('order_items').insert([
+        for (final line in lines)
+          {
+            'order_id': orderId,
+            'item_id': line.itemId,
+            'item_name': line.itemName,
+            'quantity': line.quantity,
+            'unit': line.unit,
+          },
+      ]);
+      return orderId;
     } catch (error) {
       throw mapErrorToAppException(error);
     }

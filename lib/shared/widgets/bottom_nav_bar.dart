@@ -77,10 +77,13 @@ class BottomNavBar extends StatelessWidget {
                     ),
                     Expanded(
                       child: _NavItem(
-                        svgAsset: 'assets/icons/nav_history.svg',
+                        svgAsset: currentIndex == 2
+                            ? 'assets/icons/nav_history_filled.svg'
+                            : 'assets/icons/nav_history.svg',
                         label: 'History',
                         isActive: currentIndex == 2,
                         onTap: () => onTabSelected(2),
+                        tintColor: false,
                       ),
                     ),
                     Expanded(
@@ -118,10 +121,10 @@ class _NavItem extends StatelessWidget {
   final VoidCallback onTap;
 
   /// When the icon has its own real active/inactive SVG variants (each
-  /// already authored with the right colors baked in — see Home), the raw
-  /// SVG is rendered untouched. When only one outline SVG exists for both
-  /// states (Shop/History/Settings, for now), it's tinted navy/gray as a
-  /// stand-in until their filled variants are exported from Figma too.
+  /// already authored with the right colors baked in — see Home/Shop/
+  /// History), the raw SVG is rendered untouched. When only one outline
+  /// SVG exists for both states (Settings, for now), it's tinted navy/gray
+  /// as a stand-in until its filled variant is exported from Figma too.
   final bool tintColor;
 
   @override

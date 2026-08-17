@@ -21,3 +21,4 @@ alter table public.items add constraint items_category_not_blank
 alter table public.items drop constraint if exists items_unit_valid;
 alter table public.items add constraint items_unit_not_blank
   check (length(trim(unit)) > 0);
+

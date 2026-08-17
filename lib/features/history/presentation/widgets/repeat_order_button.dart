@@ -10,13 +10,8 @@ import '../../../orders/presentation/providers/cart_providers.dart';
 import '../../../orders/presentation/providers/orders_providers.dart';
 
 /// Loads a historical order's items into the current cart draft and hands
-/// off to Shop. The spec calls for navigating to "the Cart screen", but no
-/// Cart/Review screen exists in this app yet (order submission itself —
-/// the "Place Order" action — hasn't been built either) — flagged rather
-/// than silently invented. Shop is the closest existing real destination:
-/// the cart badge there already reflects whatever's been loaded, and every
-/// item's quantity is visible via the same selection UI used everywhere
-/// else.
+/// off to the Cart screen, where quantities can be adjusted before Place
+/// Order.
 ///
 /// Replaces the cart outright rather than merging with whatever was
 /// already selected — "repeat this order" reads as "make my draft match
@@ -65,7 +60,7 @@ class _RepeatOrderButtonState extends ConsumerState<RepeatOrderButton> {
             ),
           );
       }
-      context.go(AppRoutes.shop);
+      context.go(AppRoutes.cart);
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context)

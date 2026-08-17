@@ -8,8 +8,12 @@ import '../../features/auth/presentation/screens/status_screens.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/screens/terms_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
+import '../../features/history/presentation/screens/order_detail_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/items/presentation/screens/shop_screen.dart';
+import '../../features/orders/presentation/screens/cart_screen.dart';
+import '../../features/orders/presentation/screens/order_failure_screen.dart';
+import '../../features/orders/presentation/screens/order_success_screen.dart';
 import '../../features/registration/presentation/screens/registration_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../constants/app_config.dart';
@@ -100,6 +104,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.accountSuspended,
         builder: (context, state) => const AccountSuspendedScreen(),
       ),
+      GoRoute(path: AppRoutes.cart, builder: (context, state) => const CartScreen()),
+      GoRoute(
+        path: '${AppRoutes.orderSuccess}/:orderId',
+        builder: (context, state) =>
+            OrderSuccessScreen(orderId: state.pathParameters['orderId']!),
+      ),
+      GoRoute(
+        path: AppRoutes.orderFailure,
+        builder: (context, state) => OrderFailureScreen(
+          message: state.extra is String
+              ? state.extra as String
+              : 'Something went wrong. Please try again.',
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             MainShellScreen(navigationShell: navigationShell),
@@ -125,6 +143,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.history,
                 builder: (context, state) => const HistoryScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'order/:orderId',
+                    builder: (context, state) => OrderDetailScreen(
+                      orderId: state.pathParameters['orderId']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
