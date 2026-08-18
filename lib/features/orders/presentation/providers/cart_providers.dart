@@ -47,6 +47,19 @@ class CartNotifier extends Notifier<CartState> {
     }
     state = CartState(quantities: next);
   }
+
+  /// Adds [quantities] on top of whatever is already in the cart (summing
+  /// per item id) rather than replacing it — used by Voice Order, where a
+  /// recognized order should merge into an in-progress cart the same way a
+  /// restaurant adding items by hand would, not silently wipe it.
+  void addQuantities(Map<String, int> quantities) {
+    final next = Map<String, int>.from(state.quantities);
+    for (final entry in quantities.entries) {
+      if (entry.value <= 0) continue;
+      next[entry.key] = (next[entry.key] ?? 0) + entry.value;
+    }
+    state = CartState(quantities: next);
+  }
 }
 
 final cartProvider = NotifierProvider<CartNotifier, CartState>(CartNotifier.new);

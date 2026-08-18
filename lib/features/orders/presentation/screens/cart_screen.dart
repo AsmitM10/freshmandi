@@ -44,7 +44,7 @@ class CartScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _Header(onBack: () => context.pop()),
+            _Header(onBack: () => context.pop(), onVoice: () => context.push(AppRoutes.voiceOrder)),
             Expanded(
               child: catalogAsync.when(
                 loading: () => const LoadingState(),
@@ -175,9 +175,10 @@ class CartScreen extends ConsumerWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onBack});
+  const _Header({required this.onBack, required this.onVoice});
 
   final VoidCallback onBack;
+  final VoidCallback onVoice;
 
   @override
   Widget build(BuildContext context) {
@@ -211,18 +212,22 @@ class _Header extends StatelessWidget {
               ),
             ),
           ),
-          // Voice ordering isn't defined/built anywhere in the app yet
-          // (same open item as Home's notification bell) — icon shown,
-          // no action wired.
           SizedBox(
             width: 32,
             height: 32,
-            child: Center(
-              child: SvgPicture.asset(
-                'assets/icons/icon_mic_outline.svg',
-                width: 30,
-                height: 30,
-                colorFilter: const ColorFilter.mode(AppColors.placeholder, BlendMode.srcIn),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: onVoice,
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/icons/icon_mic_outline.svg',
+                    width: 30,
+                    height: 30,
+                    colorFilter: const ColorFilter.mode(AppColors.placeholder, BlendMode.srcIn),
+                  ),
+                ),
               ),
             ),
           ),

@@ -43,6 +43,7 @@ class AppRoutes {
   static const String privacyPolicy = '/privacy-policy';
   static const String aboutUs = '/about-us';
   static const String returnOrder = '/return-order';
+  static const String voiceOrder = '/voice-order';
 
   static const Set<String> statusGatedRoutes = {
     pendingApproval,

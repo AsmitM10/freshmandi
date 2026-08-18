@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../constants/app_routes.dart';
 import '../../shared/widgets/bottom_nav_bar.dart';
 
 /// Hosts the four bottom-nav branches (Home/Shop/History/Settings) as
 /// parallel navigation stacks via go_router's StatefulShellRoute, plus the
-/// floating voice button on top. The voice button doesn't navigate yet —
-/// the Voice screen is out of scope until Phase 8; tapping it shows a
-/// "coming soon" message rather than a route to nowhere.
+/// floating voice button on top, which pushes the real Voice Order screen.
 class MainShellScreen extends StatelessWidget {
   const MainShellScreen({super.key, required this.navigationShell});
 
@@ -29,13 +28,7 @@ class MainShellScreen extends StatelessWidget {
                 index,
                 initialLocation: index == navigationShell.currentIndex,
               ),
-              onVoiceTapped: () {
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    const SnackBar(content: Text('Voice ordering is coming soon')),
-                  );
-              },
+              onVoiceTapped: () => context.push(AppRoutes.voiceOrder),
             ),
           ),
         ],

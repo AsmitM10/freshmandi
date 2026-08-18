@@ -1,4 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Voice Order feature: on-device speech recognition (speech_to_text
+         package) — no cloud/paid speech API involved. RECORD_AUDIO is the
+         permission the plugin actually requests at runtime; the BLUETOOTH*
+         entries let recognition work over a connected Bluetooth mic on
+         older Android versions per the plugin's own setup docs. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <application
         android:label="flutter_application_1"
         android:name="${applicationName}"
@@ -40,6 +50,12 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Android 11+ (API 30+) package visibility: without this, the
+             device's speech recognizer app is invisible to this app and
+             speech_to_text's initialize() always returns false. -->
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
         </intent>
     </queries>
 </manifest>

@@ -18,6 +18,7 @@ import '../../features/settings/presentation/screens/about_us_screen.dart';
 import '../../features/settings/presentation/screens/business_details_screen.dart';
 import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
 import '../../features/settings/presentation/screens/return_order_screen.dart';
+import '../../features/voice/presentation/screens/voice_order_screen.dart';
 import '../../features/registration/presentation/screens/registration_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../constants/app_config.dart';
@@ -141,6 +142,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.returnOrder,
         builder: (context, state) => const ReturnOrderScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.voiceOrder,
+        builder: (context, state) => const VoiceOrderScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
