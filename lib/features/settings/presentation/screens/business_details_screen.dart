@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -11,14 +12,12 @@ import '../../../auth/domain/restaurant_account.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
 /// Business Details — reached from Settings. Shows the restaurant's real
-/// account data (name/owner/phone/status/billing+delivery address, all
-/// that `restaurants` now stores — billing/delivery address were added by
-/// the invoice-number/business-settings migration; a restaurant that
-/// hasn't set one yet still shows "Not set" rather than invented text).
-/// The Figma reference also shows a tagline and a profile photo — neither
-/// exists in the schema, so those still show as "Not set". "Edit Profile"
-/// is UI only for now (no update flow wired), same "coming soon"
-/// treatment as the other not-yet-built Settings rows.
+/// account data (name/owner/phone/status/billing+delivery/email/GST, all
+/// that `restaurants` now stores). "Edit Profile" opens the real Edit
+/// Details screen (Contact Person/Email/Delivery Address/GST Number) and
+/// refreshes this screen on a successful save. The Figma reference also
+/// shows a tagline and a profile photo — neither exists in the schema, so
+/// those still show as "Not set".
 class BusinessDetailsScreen extends ConsumerWidget {
   const BusinessDetailsScreen({super.key});
 
@@ -57,7 +56,10 @@ class BusinessDetailsScreen extends ConsumerWidget {
                           AppSpacing.bottomNavHeight + AppSpacing.base,
                         ),
                         children: [
-                          _ProfileCard(restaurant: restaurant, context: context),
+                          _ProfileCard(
+                            restaurant: restaurant,
+                            onEditProfile: () => _openEditDetails(context, ref),
+                          ),
                           const SizedBox(height: AppSpacing.xl),
                           Text('Account Information', style: AppTextStyles.sectionHeading),
                           const SizedBox(height: AppSpacing.base),
@@ -70,6 +72,17 @@ class BusinessDetailsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+Future<void> _openEditDetails(BuildContext context, WidgetRef ref) async {
+  final saved = await context.push<bool>(AppRoutes.editDetails);
+  if (saved != true) return;
+  ref.invalidate(currentRestaurantProvider);
+  if (context.mounted) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Details updated.')));
   }
 }
 
@@ -118,16 +131,10 @@ class _Header extends StatelessWidget {
 }
 
 class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({required this.restaurant, required this.context});
+  const _ProfileCard({required this.restaurant, required this.onEditProfile});
 
   final RestaurantAccount restaurant;
-  final BuildContext context;
-
-  void _comingSoon() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Editing your business profile is coming soon')));
-  }
+  final VoidCallback onEditProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +163,7 @@ class _ProfileCard extends StatelessWidget {
                     right: -2,
                     bottom: -2,
                     child: InkWell(
-                      onTap: _comingSoon,
+                      onTap: onEditProfile,
                       customBorder: const CircleBorder(),
                       child: SvgPicture.asset('assets/icons/icon_camera_badge.svg', width: 28, height: 28),
                     ),
@@ -226,7 +233,7 @@ class _ProfileCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: _comingSoon,
+                onTap: onEditProfile,
                 child: Center(
                   child: Text(
                     'Edit Profile',
@@ -254,23 +261,24 @@ class _AccountInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Email Address and FSSAI Number still aren't in the schema (auth is
-    // phone-only, and the FSSAI *document* restaurants upload at
-    // registration has no separate license-number field) — shown as "Not
-    // set" rather than fabricated values, since an invented license
-    // number could be mistaken for real by the restaurant owner using
-    // this screen. Billing/Delivery Address are real columns now (see the
-    // invoice-number/business-settings migration) but still show "Not
-    // set" until a restaurant actually has one on file — there's no edit
-    // flow yet to set them (same as the rest of this screen).
+    // FSSAI Number still isn't in the schema (the FSSAI *document*
+    // restaurants upload at registration has no separate license-number
+    // field) — shown as "Not set" rather than a fabricated value, since
+    // an invented license number could be mistaken for real by the
+    // restaurant owner using this screen. Email/Billing Address/Delivery
+    // Address/GST Number are all real, editable columns now (see the
+    // restaurant-profile-editable-fields migration and the Edit Details
+    // screen) and show "Not set" only until the restaurant actually sets
+    // one.
     const notSet = 'Not set';
     final rows = [
       (Icons.storefront_outlined, 'Restaurant Name', restaurant.restaurantName),
       (Icons.person_outline, 'Contact Person', restaurant.ownerName),
       (Icons.call_outlined, 'Phone Number', restaurant.phoneNumber),
-      (Icons.mail_outline, 'Email Address', notSet),
+      (Icons.mail_outline, 'Email Address', restaurant.email ?? notSet),
       (Icons.location_on_outlined, 'Billing Address', restaurant.billingAddress ?? notSet),
       (Icons.local_shipping_outlined, 'Delivery Address', restaurant.deliveryAddress ?? notSet),
+      (Icons.receipt_long_outlined, 'GST Number', restaurant.gstNumber ?? notSet),
       (Icons.description_outlined, 'FSSAI Number', notSet),
       (Icons.verified_outlined, 'Account Status', _statusLabel(restaurant.accountStatus.name)),
     ];

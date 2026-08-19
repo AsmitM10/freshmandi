@@ -53,7 +53,10 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text('Manage your account and app preferences', style: AppTextStyles.caption),
+                      Text(
+                        'Manage your account and app preferences',
+                        style: AppTextStyles.caption,
+                      ),
                     ],
                   ),
                 ),
@@ -73,21 +76,34 @@ class SettingsScreen extends ConsumerWidget {
                 color: AppColors.surfaceWhite,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: const [
-                  BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 1)),
+                  BoxShadow(
+                    color: Color(0x3F000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 1),
+                  ),
                 ],
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 child: Column(
                   children: [
                     for (var i = 0; i < _rows.length; i++) ...[
                       _SettingsRow(
                         row: _rows[i],
                         onTap: () => switch (_rows[i].title) {
-                          'Business Details' => context.push(AppRoutes.businessDetails),
-                          'Privacy Policy' => context.push(AppRoutes.privacyPolicy),
+                          'Business Details' => context.push(
+                            AppRoutes.businessDetails,
+                          ),
+                          'Privacy Policy' => context.push(
+                            AppRoutes.privacyPolicy,
+                          ),
                           'About Us' => context.push(AppRoutes.aboutUs),
-                          'Terms and Conditions' => context.push(AppRoutes.termsView),
+                          'Terms and Conditions' => context.push(
+                            AppRoutes.termsView,
+                          ),
                           'Return Order' => context.push(AppRoutes.returnOrder),
                           _ => _showComingSoon(context, _rows[i].title),
                         },
@@ -100,7 +116,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.base),
-            const _HelpBanner(),
+            _HelpBanner(onTap: () => context.push(AppRoutes.contactUs)),
           ],
         ),
       ),
@@ -115,7 +131,11 @@ class SettingsScreen extends ConsumerWidget {
 }
 
 class _SettingsRowData {
-  const _SettingsRowData({required this.icon, required this.title, required this.subtitle});
+  const _SettingsRowData({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
 
   final IconData icon;
   final String title;
@@ -192,7 +212,11 @@ class _SettingsRow extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.secondary, size: 20),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.secondary,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -223,66 +247,76 @@ class _LogoutButton extends StatelessWidget {
 }
 
 class _HelpBanner extends StatelessWidget {
-  const _HelpBanner();
+  const _HelpBanner({required this.onTap});
+
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -16,
-            bottom: -16,
-            child: Icon(
-              Icons.storefront,
-              size: 110,
-              color: Colors.white.withValues(alpha: 0.12),
+      color: AppColors.primary,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        child: Stack(
+          children: [
+            Positioned(
+              right: -16,
+              bottom: -16,
+              child: Icon(
+                Icons.storefront,
+                size: 110,
+                color: Colors.white.withValues(alpha: 0.12),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.call_outlined,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
-                  child: const Icon(Icons.call_outlined, color: Colors.white, size: 20),
-                ),
-                const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Need a help?',
-                      style: TextStyle(
-                        color: AppColors.ctaText,
-                        fontSize: 16,
-                        fontFamily: AppTextStyles.fontFamily,
-                        fontWeight: FontWeight.w400,
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Need a help?',
+                        style: TextStyle(
+                          color: AppColors.ctaText,
+                          fontSize: 16,
+                          fontFamily: AppTextStyles.fontFamily,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
-                    ),
-                    Text(
-                      "We're here for you.",
-                      style: TextStyle(
-                        color: AppColors.ctaText,
-                        fontSize: 16,
-                        fontFamily: AppTextStyles.urbanistFontFamily,
-                        fontWeight: FontWeight.w600,
+                      Text(
+                        "We're here for you.",
+                        style: TextStyle(
+                          color: AppColors.ctaText,
+                          fontSize: 16,
+                          fontFamily: AppTextStyles.urbanistFontFamily,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

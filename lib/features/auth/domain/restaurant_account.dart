@@ -11,6 +11,8 @@ class RestaurantAccount {
     required this.accountStatus,
     this.billingAddress,
     this.deliveryAddress,
+    this.email,
+    this.gstNumber,
   });
 
   factory RestaurantAccount.fromMap(Map<String, dynamic> map) => RestaurantAccount(
@@ -22,6 +24,8 @@ class RestaurantAccount {
     accountStatus: (map['account_status'] as String).toAccountStatus(),
     billingAddress: map['billing_address'] as String?,
     deliveryAddress: map['delivery_address'] as String?,
+    email: map['email'] as String?,
+    gstNumber: map['gst_number'] as String?,
   );
 
   final String id;
@@ -36,4 +40,6 @@ class RestaurantAccount {
   /// empty string standing in for one.
   final String? billingAddress;
   final String? deliveryAddress;
+  final String? email;
+  final String? gstNumber;
 }

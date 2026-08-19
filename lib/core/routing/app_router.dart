@@ -17,6 +17,8 @@ import '../../features/orders/presentation/screens/order_success_screen.dart';
 import '../../features/settings/presentation/screens/about_us_screen.dart';
 import '../../features/settings/presentation/screens/business_details_screen.dart';
 import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
+import '../../features/settings/presentation/screens/contact_us_screen.dart';
+import '../../features/settings/presentation/screens/edit_details_screen.dart';
 import '../../features/settings/presentation/screens/return_order_screen.dart';
 import '../../features/voice/presentation/screens/voice_order_screen.dart';
 import '../../features/registration/presentation/screens/registration_screen.dart';
@@ -126,6 +128,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.businessDetails,
         builder: (context, state) => const BusinessDetailsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.editDetails,
+        builder: (context, state) => const EditDetailsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.contactUs,
+        builder: (context, state) => const ContactUsScreen(),
       ),
       GoRoute(
         path: AppRoutes.termsView,

@@ -13,26 +13,58 @@ class RestaurantRepository {
 
   Future<RestaurantAccount?> fetchForCurrentUser() async {
     final userId = _client.auth.currentUser?.id;
-    // ignore: avoid_print
-    print('[REPO] fetchForCurrentUser: userId=$userId');
     if (userId == null) return null;
     try {
-      // ignore: avoid_print
-      print('[REPO] querying restaurants table...');
       final row = await _client
           .from('restaurants')
           .select()
           .eq('user_id', userId)
           .maybeSingle();
-      // ignore: avoid_print
-      print('[REPO] query returned: $row');
       if (row == null) return null;
       return RestaurantAccount.fromMap(row);
     } catch (error) {
-      // ignore: avoid_print
-      print('[REPO] query threw: $error');
       throw mapErrorToAppException(error);
     }
+  }
+
+  /// Updates the editable subset of the caller's own profile (Edit
+  /// Details screen). `restaurant_name` and `phone_number` are
+  /// deliberately not settable here — the phone number is the actual
+  /// Supabase Auth identity (OTP login), so changing it needs its own
+  /// re-verification flow, not a plain profile edit. `account_status` is
+  /// structurally protected server-side (see the profile-editable-fields
+  /// migration's trigger) regardless of what this sends.
+  Future<RestaurantAccount> updateProfile({
+    required String ownerName,
+    String? email,
+    String? deliveryAddress,
+    String? gstNumber,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      throw const AppException('You need to be signed in to continue.');
+    }
+    try {
+      final row = await _client
+          .from('restaurants')
+          .update({
+            'owner_name': ownerName.trim(),
+            'email': _nullIfBlank(email),
+            'delivery_address': _nullIfBlank(deliveryAddress),
+            'gst_number': _nullIfBlank(gstNumber),
+          })
+          .eq('user_id', userId)
+          .select()
+          .single();
+      return RestaurantAccount.fromMap(row);
+    } catch (error) {
+      throw mapErrorToAppException(error);
+    }
+  }
+
+  String? _nullIfBlank(String? value) {
+    final trimmed = value?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
   }
 
   /// Server-side check via a SECURITY DEFINER RPC so an unauthenticated

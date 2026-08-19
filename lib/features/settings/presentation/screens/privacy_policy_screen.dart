@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -33,13 +34,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xl),
                   const _PolicyCard(),
                   const SizedBox(height: AppSpacing.xl),
-                  _ContactSupportButton(
-                    onTap: () {
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(const SnackBar(content: Text('Contact support is coming soon')));
-                    },
-                  ),
+                  _ContactSupportButton(onTap: () => context.push(AppRoutes.contactUs)),
                 ],
               ),
             ),

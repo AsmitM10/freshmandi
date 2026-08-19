@@ -44,6 +44,8 @@ class AppRoutes {
   static const String aboutUs = '/about-us';
   static const String returnOrder = '/return-order';
   static const String voiceOrder = '/voice-order';
+  static const String editDetails = '/edit-details';
+  static const String contactUs = '/contact-us';
 
   static const Set<String> statusGatedRoutes = {
     pendingApproval,
