@@ -11,7 +11,12 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/save_image.dart';
 import '../../../../shared/widgets/empty_state.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../orders/domain/order_history_entry.dart';
+import '../../../orders/domain/order_line_item.dart';
 import '../../../orders/presentation/providers/orders_providers.dart';
+import '../providers/business_settings_providers.dart';
+import '../widgets/invoice_document.dart';
 import '../widgets/order_items_card.dart';
 import '../widgets/order_primary_action.dart';
 import '../widgets/order_summary_card.dart';
@@ -22,13 +27,20 @@ import '../widgets/order_summary_card.dart';
 /// full item list. Never shows a per-item price, per the no-item-price
 /// rule — only quantity/unit, snapshotted at order time.
 ///
-/// Download captures exactly what's shown here (summary + item list) as a
-/// PNG saved to the device gallery. It does not attempt the fuller
-/// formatted-bill layout (wholesaler business details, a separate invoice
-/// number, restaurant billing address, UPI QR) sometimes seen in printed
-/// invoices — none of that data exists in this schema yet (no
-/// wholesaler/vendor table, no invoice-number scheme, no restaurant
-/// address fields), so it isn't invented here.
+/// "Accepted" in this app's business sense = `entry.hasInvoice &&
+/// entry.invoiceTotal != null` (a row exists in `invoices`, which only a
+/// service-role/admin action can create) — there's no separate
+/// `orders.status == 'accepted'` value; the invoices table's mere
+/// presence *is* the acceptance signal, and it's what already gates the
+/// PRICE field everywhere else in this app. A pending order (no invoice
+/// yet) shows a "waiting for confirmation" notice and can never download
+/// an invoice, even if triggered some other way — [_handleDownload]
+/// re-validates this itself rather than trusting that the button being
+/// enabled was the only guard.
+///
+/// Download renders a standalone [InvoiceDocument] — briefly, into the
+/// app's real root [Overlay] (see [_handleDownload]) — and rasterizes
+/// *that*, not a screenshot of this screen's own cards.
 class OrderDetailScreen extends ConsumerStatefulWidget {
   const OrderDetailScreen({super.key, required this.orderId});
 
@@ -39,15 +51,60 @@ class OrderDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
-  final _captureKey = GlobalKey();
   bool _isDownloading = false;
 
-  Future<void> _handleDownload() async {
+  bool _isAccepted(OrderHistoryEntry summary) => summary.hasInvoice && summary.invoiceTotal != null;
+
+  Future<void> _handleDownload(OrderHistoryEntry summary, List<OrderLineItem> lines) async {
     if (_isDownloading) return;
+
+    // Re-validated here independently of the button's enabled state — see
+    // the class doc comment. A pending order can never produce a PNG.
+    if (!_isAccepted(summary)) {
+      _showMessage('Invoice will be available after order confirmation.');
+      return;
+    }
+
     setState(() => _isDownloading = true);
+    OverlayEntry? entry;
     try {
-      final boundary =
-          _captureKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final restaurant = await ref.read(currentRestaurantProvider.future);
+      final business = await ref.read(businessSettingsProvider.future);
+      if (restaurant == null) throw Exception('Could not load your account.');
+      if (!mounted) return;
+
+      // Rendering the document off-screen (translated far outside the
+      // viewport, or genuinely on-screen but occluded by opaque content)
+      // both produced a blank `toImage()` capture on Flutter web — the
+      // engine appears to skip rasterizing a layer it can determine will
+      // never actually be composited into the visible frame, regardless
+      // of the framework-level RepaintBoundary. Inserting into the real
+      // root Overlay (the same layer dialogs/tooltips use) is the one
+      // technique guaranteed to be treated as genuine, paintable content
+      // on every platform — it's visible for a couple of frames (a brief,
+      // expected flash, same as any "generating..." export flow), then
+      // removed the instant we're done capturing it.
+      final overlayState = Overlay.of(context, rootOverlay: true);
+      final captureKey = GlobalKey();
+      entry = OverlayEntry(
+        builder: (context) => Positioned(
+          left: 0,
+          top: 0,
+          child: Material(
+            child: RepaintBoundary(
+              key: captureKey,
+              child: InvoiceDocument(entry: summary, lines: lines, restaurant: restaurant, business: business),
+            ),
+          ),
+        ),
+      );
+      overlayState.insert(entry);
+
+      // Let it actually paint before reading the RenderObject.
+      await WidgetsBinding.instance.endOfFrame;
+      await WidgetsBinding.instance.endOfFrame;
+
+      final boundary = captureKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) throw Exception('Nothing to download yet.');
 
       final image = await boundary.toImage(pixelRatio: 3.0);
@@ -57,11 +114,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         byteData.lengthInBytes,
       );
 
+      entry.remove();
+      entry = null;
+
       await saveImageBytes(bytes, 'freshmandi_invoice_${widget.orderId}');
-      if (mounted) _showMessage('Invoice saved.');
-    } catch (error) {
-      if (mounted) _showMessage("Couldn't save the invoice: $error");
+      if (mounted) _showMessage('Invoice downloaded successfully.');
+    } catch (error, stack) {
+      debugPrint('Invoice download failed: $error\n$stack');
+      if (mounted) _showMessage('Unable to download invoice. Please try again.');
     } finally {
+      entry?.remove();
       if (mounted) setState(() => _isDownloading = false);
     }
   }
@@ -78,6 +140,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final summaryAsync = ref.watch(orderSummaryProvider(orderId));
     final itemsAsync = ref.watch(orderItemsProvider(orderId));
 
+    final summary = summaryAsync.valueOrNull;
+    final lines = itemsAsync.valueOrNull;
+    final canDownload = summary != null && lines != null && _isAccepted(summary);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundHome,
       body: SafeArea(
@@ -86,8 +152,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           children: [
             _Header(
               onBack: () => context.pop(),
-              onDownload: summaryAsync.hasValue ? _handleDownload : null,
+              onDownload: summary == null ? null : () => _handleDownload(summary, lines ?? const []),
               isDownloading: _isDownloading,
+              isEnabled: canDownload,
             ),
             Expanded(
               child: summaryAsync.when(
@@ -101,49 +168,36 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   ),
                 ),
                 data: (summary) => SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(
-                    16,
-                    16,
-                    16,
-                    AppSpacing.bottomNavHeight + AppSpacing.base,
-                  ),
-                  child: RepaintBoundary(
-                    key: _captureKey,
-                    child: Container(
-                      color: AppColors.backgroundHome,
-                      padding: const EdgeInsets.all(1),
-                      child: Column(
-                        children: [
-                          OrderSummaryCard(
-                            entry: summary,
-                            actions: OrderPrimaryAction(entry: summary),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, AppSpacing.bottomNavHeight + AppSpacing.base),
+                  child: Column(
+                    children: [
+                      OrderSummaryCard(entry: summary, actions: OrderPrimaryAction(entry: summary)),
+                      if (!_isAccepted(summary)) ...[
+                        const SizedBox(height: AppSpacing.base),
+                        const _PendingNotice(),
+                      ],
+                      const SizedBox(height: AppSpacing.base),
+                      itemsAsync.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                        ),
+                        error: (error, _) => EmptyState(
+                          icon: Icons.wifi_off_outlined,
+                          message: "Couldn't load this order's items.",
+                          action: TextButton(
+                            onPressed: () => ref.refresh(orderItemsProvider(orderId)),
+                            child: const Text('Retry'),
                           ),
-                          const SizedBox(height: AppSpacing.base),
-                          itemsAsync.when(
-                            loading: () => const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 24),
-                              child: Center(
-                                child: CircularProgressIndicator(color: AppColors.primary),
-                              ),
-                            ),
-                            error: (error, _) => EmptyState(
-                              icon: Icons.wifi_off_outlined,
-                              message: "Couldn't load this order's items.",
-                              action: TextButton(
-                                onPressed: () => ref.refresh(orderItemsProvider(orderId)),
-                                child: const Text('Retry'),
-                              ),
-                            ),
-                            data: (lines) => lines.isEmpty
-                                ? const EmptyState(
-                                    icon: Icons.receipt_long_outlined,
-                                    message: 'No items found for this order.',
-                                  )
-                                : OrderItemsCard(lines: lines),
-                          ),
-                        ],
+                        ),
+                        data: (lines) => lines.isEmpty
+                            ? const EmptyState(
+                                icon: Icons.receipt_long_outlined,
+                                message: 'No items found for this order.',
+                              )
+                            : OrderItemsCard(lines: lines),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
@@ -155,12 +209,68 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   }
 }
 
+class _PendingNotice extends StatelessWidget {
+  const _PendingNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.accentYellow.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.accentYellow),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.hourglass_top_outlined, color: AppColors.primaryText, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Waiting for confirmation',
+                  style: TextStyle(
+                    color: AppColors.primaryText,
+                    fontSize: 14,
+                    fontFamily: AppTextStyles.urbanistFontFamily,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'The final amount and invoice will be available once the wholesaler confirms this order.',
+                  style: AppTextStyles.caption,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Header extends StatelessWidget {
-  const _Header({required this.onBack, required this.onDownload, required this.isDownloading});
+  const _Header({
+    required this.onBack,
+    required this.onDownload,
+    required this.isDownloading,
+    required this.isEnabled,
+  });
 
   final VoidCallback onBack;
   final VoidCallback? onDownload;
   final bool isDownloading;
+
+  /// Whether the order is accepted (has a real invoice) — purely a visual
+  /// affordance (muted vs. active icon color). `onDownload` stays tappable
+  /// either way so a pending order still gets the "will be available
+  /// after confirmation" message instead of doing nothing.
+  final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +324,7 @@ class _Header extends StatelessWidget {
                           width: 24,
                           height: 24,
                           colorFilter: ColorFilter.mode(
-                            onDownload == null ? AppColors.placeholder : AppColors.primaryText,
+                            onDownload == null || !isEnabled ? AppColors.placeholder : AppColors.primaryText,
                             BlendMode.srcIn,
                           ),
                         ),

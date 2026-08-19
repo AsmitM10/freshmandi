@@ -48,6 +48,7 @@ dependencies:
   gal: ^2.3.1
   web: ^1.1.0
   speech_to_text: ^7.4.0
+  qr_flutter: ^4.1.0
 
 # NOTE: file_picker's Windows implementation is pinned to win32 ^5.9.0 while
 # flutter_secure_storage's Windows implementation requires win32 ^6.0.1. This app

@@ -14,6 +14,7 @@ class OrderHistoryEntry {
     required this.hasInvoice,
     this.invoiceTotal,
     this.paymentStatus,
+    this.invoiceNumber,
   });
 
   factory OrderHistoryEntry.fromMap(Map<String, dynamic> map) => OrderHistoryEntry(
@@ -28,6 +29,7 @@ class OrderHistoryEntry {
     hasInvoice: map['has_invoice'] as bool,
     invoiceTotal: (map['invoice_total'] as num?)?.toDouble(),
     paymentStatus: map['payment_status'] as String?,
+    invoiceNumber: map['invoice_number'] as String?,
   );
 
   final String orderId;
@@ -39,6 +41,10 @@ class OrderHistoryEntry {
   final bool hasInvoice;
   final double? invoiceTotal;
   final String? paymentStatus;
+
+  /// Stable per-order id assigned once an invoice is generated (see the
+  /// invoice_number migration) — null exactly when [hasInvoice] is false.
+  final String? invoiceNumber;
 
   bool get isPaid => paymentStatus == 'paid';
 }

@@ -11,12 +11,14 @@ import '../../../auth/domain/restaurant_account.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
 /// Business Details — reached from Settings. Shows the restaurant's real
-/// account data (name/owner/phone/status, all that `restaurants` actually
-/// stores). The Figma reference also shows a tagline, a full address, and
-/// a profile photo — none of that exists in the schema yet, so those show
-/// as "Not set" rather than invented text. "Edit Profile" is UI only for
-/// now (no update flow wired), same "coming soon" treatment as the other
-/// not-yet-built Settings rows.
+/// account data (name/owner/phone/status/billing+delivery address, all
+/// that `restaurants` now stores — billing/delivery address were added by
+/// the invoice-number/business-settings migration; a restaurant that
+/// hasn't set one yet still shows "Not set" rather than invented text).
+/// The Figma reference also shows a tagline and a profile photo — neither
+/// exists in the schema, so those still show as "Not set". "Edit Profile"
+/// is UI only for now (no update flow wired), same "coming soon"
+/// treatment as the other not-yet-built Settings rows.
 class BusinessDetailsScreen extends ConsumerWidget {
   const BusinessDetailsScreen({super.key});
 
@@ -197,7 +199,7 @@ class _ProfileCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            'Address not set',
+                            restaurant.deliveryAddress ?? restaurant.billingAddress ?? 'Address not set',
                             style: TextStyle(
                               color: AppColors.ctaText.withValues(alpha: 0.85),
                               fontSize: 12,
@@ -252,19 +254,23 @@ class _AccountInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Email Address, Delivery Address, and FSSAI Number aren't in the
-    // schema (auth is phone-only, restaurants has no address column, and
-    // the FSSAI *document* restaurants upload at registration has no
-    // separate license-number field) — shown as "Not set" rather than
-    // fabricated values, since an invented license number or address could
-    // be mistaken for real by the restaurant owner using this screen.
+    // Email Address and FSSAI Number still aren't in the schema (auth is
+    // phone-only, and the FSSAI *document* restaurants upload at
+    // registration has no separate license-number field) — shown as "Not
+    // set" rather than fabricated values, since an invented license
+    // number could be mistaken for real by the restaurant owner using
+    // this screen. Billing/Delivery Address are real columns now (see the
+    // invoice-number/business-settings migration) but still show "Not
+    // set" until a restaurant actually has one on file — there's no edit
+    // flow yet to set them (same as the rest of this screen).
     const notSet = 'Not set';
     final rows = [
       (Icons.storefront_outlined, 'Restaurant Name', restaurant.restaurantName),
       (Icons.person_outline, 'Contact Person', restaurant.ownerName),
       (Icons.call_outlined, 'Phone Number', restaurant.phoneNumber),
       (Icons.mail_outline, 'Email Address', notSet),
-      (Icons.location_on_outlined, 'Delivery Address', notSet),
+      (Icons.location_on_outlined, 'Billing Address', restaurant.billingAddress ?? notSet),
+      (Icons.local_shipping_outlined, 'Delivery Address', restaurant.deliveryAddress ?? notSet),
       (Icons.description_outlined, 'FSSAI Number', notSet),
       (Icons.verified_outlined, 'Account Status', _statusLabel(restaurant.accountStatus.name)),
     ];
