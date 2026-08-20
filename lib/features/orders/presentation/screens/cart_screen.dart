@@ -9,6 +9,7 @@ import '../../../../core/errors/app_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../../shared/widgets/category_card.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../history/presentation/widgets/order_summary_card.dart';
@@ -36,6 +37,7 @@ class CartScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final cartState = ref.watch(cartProvider);
     final catalogAsync = ref.watch(catalogProvider);
 
@@ -50,20 +52,20 @@ class CartScreen extends ConsumerWidget {
                 loading: () => const LoadingState(),
                 error: (error, _) => EmptyState(
                   icon: Icons.wifi_off_outlined,
-                  message: "Couldn't load your cart. Check your connection and try again.",
+                  message: l10n.cartLoadError,
                   action: TextButton(
                     onPressed: () => ref.refresh(catalogProvider),
-                    child: const Text('Retry'),
+                    child: Text(l10n.retry),
                   ),
                 ),
                 data: (catalog) {
                   if (cartState.isEmpty) {
                     return EmptyState(
                       icon: Icons.shopping_cart_outlined,
-                      message: 'Your cart is empty.',
+                      message: l10n.cartEmpty,
                       action: TextButton(
                         onPressed: () => context.go(AppRoutes.shop),
-                        child: const Text('Browse Shop'),
+                        child: Text(l10n.cartBrowseShop),
                       ),
                     );
                   }
@@ -119,7 +121,7 @@ class CartScreen extends ConsumerWidget {
                                     children: [
                                       Expanded(
                                         child: OrderActionButton(
-                                          label: 'Add Item',
+                                          label: l10n.cartAddItem,
                                           filled: false,
                                           onPressed: () => context.go(AppRoutes.shop),
                                         ),
@@ -134,7 +136,12 @@ class CartScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xl),
-                        Text('Browse Category', style: AppTextStyles.sectionHeading),
+                        Text(
+                          l10n.homeBrowseCategory,
+                          style: AppTextStyles.sectionHeading.copyWith(
+                            fontFamilyFallback: AppTextStyles.devanagariFallback,
+                          ),
+                        ),
                         const SizedBox(height: AppSpacing.md),
                         SizedBox(
                           height: AppSpacing.categoryCardHeight,
@@ -202,13 +209,14 @@ class _Header extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              'Cart',
+              AppLocalizations.of(context).cartTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: AppTextStyles.urbanistFontFamily,
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryText,
+                fontFamilyFallback: AppTextStyles.devanagariFallback,
               ),
             ),
           ),
@@ -386,12 +394,13 @@ class _TotalItemsBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Total Items',
+            AppLocalizations.of(context).cartTotalItems,
             style: TextStyle(
               color: AppColors.ctaText,
               fontSize: 14,
               fontFamily: AppTextStyles.fontFamily,
               fontWeight: FontWeight.w400,
+              fontFamilyFallback: AppTextStyles.devanagariFallback,
             ),
           ),
           Text(
@@ -464,12 +473,13 @@ class _PlaceOrderButtonState extends ConsumerState<_PlaceOrderButton> {
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.ctaText),
                   )
                 : Text(
-                    'Place Order',
+                    AppLocalizations.of(context).cartPlaceOrder,
                     style: TextStyle(
                       color: AppColors.ctaText,
                       fontSize: 14,
                       fontFamily: AppTextStyles.fontFamily,
                       fontWeight: FontWeight.w700,
+                      fontFamilyFallback: AppTextStyles.devanagariFallback,
                     ),
                   ),
           ),

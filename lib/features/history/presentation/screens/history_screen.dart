@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../orders/domain/history_tab.dart';
 import '../../../orders/domain/order_history_entry.dart';
@@ -90,10 +91,16 @@ class _Header extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'History',
-          style: AppTextStyles.headingScreen.copyWith(color: AppColors.secondaryText),
+          AppLocalizations.of(context).historyTitle,
+          style: AppTextStyles.headingScreen.copyWith(
+            color: AppColors.secondaryText,
+            fontFamilyFallback: AppTextStyles.devanagariFallback,
+          ),
         ),
-        Text('Farm freshed and handpicked daily', style: AppTextStyles.caption),
+        Text(
+          AppLocalizations.of(context).historySubtitle,
+          style: AppTextStyles.caption.copyWith(fontFamilyFallback: AppTextStyles.devanagariFallback),
+        ),
       ],
     );
   }
@@ -104,6 +111,7 @@ class _TabRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final selected = ref.watch(selectedHistoryTabProvider);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -122,10 +130,11 @@ class _TabRow extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Text(
-                  tab.label,
+                  tab.label(l10n),
                   style: AppTextStyles.caption.copyWith(
                     fontSize: 14,
                     color: isSelected ? AppColors.background : AppColors.secondaryText,
+                    fontFamilyFallback: AppTextStyles.devanagariFallback,
                   ),
                 ),
               ),
@@ -145,21 +154,22 @@ class _HistoryList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     if (state.isLoading) return const LoadingState();
 
     if (state.error != null && state.entries.isEmpty) {
       return EmptyState(
         icon: Icons.wifi_off_outlined,
-        message: "Couldn't load history. Check your connection and try again.",
+        message: l10n.historyLoadError,
         action: TextButton(
           onPressed: () => ref.read(historyControllerProvider(tab).notifier).retry(),
-          child: const Text('Retry'),
+          child: Text(l10n.retry),
         ),
       );
     }
 
     if (state.entries.isEmpty) {
-      return EmptyState(icon: Icons.receipt_long_outlined, message: tab.emptyMessage);
+      return EmptyState(icon: Icons.receipt_long_outlined, message: tab.emptyMessage(l10n));
     }
 
     return ListView.separated(
@@ -197,7 +207,7 @@ class _OrderCard extends StatelessWidget {
         children: [
           Expanded(
             child: OrderActionButton(
-              label: 'View Details',
+              label: AppLocalizations.of(context).orderViewDetails,
               filled: false,
               onPressed: () => context.push('/history/order/${entry.orderId}'),
             ),

@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/save_image.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../orders/domain/order_history_entry.dart';
@@ -57,11 +58,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
   Future<void> _handleDownload(OrderHistoryEntry summary, List<OrderLineItem> lines) async {
     if (_isDownloading) return;
+    final l10n = AppLocalizations.of(context);
 
     // Re-validated here independently of the button's enabled state — see
     // the class doc comment. A pending order can never produce a PNG.
     if (!_isAccepted(summary)) {
-      _showMessage('Invoice will be available after order confirmation.');
+      _showMessage(l10n.invoiceNotAvailableYet);
       return;
     }
 
@@ -118,10 +120,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       entry = null;
 
       await saveImageBytes(bytes, 'freshmandi_invoice_${widget.orderId}');
-      if (mounted) _showMessage('Invoice downloaded successfully.');
+      if (mounted) _showMessage(l10n.invoiceDownloadSuccess);
     } catch (error, stack) {
       debugPrint('Invoice download failed: $error\n$stack');
-      if (mounted) _showMessage('Unable to download invoice. Please try again.');
+      if (mounted) _showMessage(l10n.invoiceDownloadFailure);
     } finally {
       entry?.remove();
       if (mounted) setState(() => _isDownloading = false);
@@ -136,6 +138,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final orderId = widget.orderId;
     final summaryAsync = ref.watch(orderSummaryProvider(orderId));
     final itemsAsync = ref.watch(orderItemsProvider(orderId));
@@ -151,6 +154,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         child: Column(
           children: [
             _Header(
+              title: l10n.invoiceTitle,
               onBack: () => context.pop(),
               onDownload: summary == null ? null : () => _handleDownload(summary, lines ?? const []),
               isDownloading: _isDownloading,
@@ -161,10 +165,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 loading: () => const LoadingState(),
                 error: (error, _) => EmptyState(
                   icon: Icons.wifi_off_outlined,
-                  message: "Couldn't load this order. Check your connection and try again.",
+                  message: l10n.invoiceLoadError,
                   action: TextButton(
                     onPressed: () => ref.refresh(orderSummaryProvider(orderId)),
-                    child: const Text('Retry'),
+                    child: Text(l10n.retry),
                   ),
                 ),
                 data: (summary) => SingleChildScrollView(
@@ -174,7 +178,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       OrderSummaryCard(entry: summary, actions: OrderPrimaryAction(entry: summary)),
                       if (!_isAccepted(summary)) ...[
                         const SizedBox(height: AppSpacing.base),
-                        const _PendingNotice(),
+                        _PendingNotice(title: l10n.invoiceWaitingTitle, body: l10n.invoiceWaitingBody),
                       ],
                       const SizedBox(height: AppSpacing.base),
                       itemsAsync.when(
@@ -184,17 +188,14 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                         ),
                         error: (error, _) => EmptyState(
                           icon: Icons.wifi_off_outlined,
-                          message: "Couldn't load this order's items.",
+                          message: l10n.invoiceItemsLoadError,
                           action: TextButton(
                             onPressed: () => ref.refresh(orderItemsProvider(orderId)),
-                            child: const Text('Retry'),
+                            child: Text(l10n.retry),
                           ),
                         ),
                         data: (lines) => lines.isEmpty
-                            ? const EmptyState(
-                                icon: Icons.receipt_long_outlined,
-                                message: 'No items found for this order.',
-                              )
+                            ? EmptyState(icon: Icons.receipt_long_outlined, message: l10n.invoiceNoItems)
                             : OrderItemsCard(lines: lines),
                       ),
                     ],
@@ -210,7 +211,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 }
 
 class _PendingNotice extends StatelessWidget {
-  const _PendingNotice();
+  const _PendingNotice({required this.title, required this.body});
+
+  final String title;
+  final String body;
 
   @override
   Widget build(BuildContext context) {
@@ -231,19 +235,20 @@ class _PendingNotice extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Waiting for confirmation',
+                Text(
+                  title,
                   style: TextStyle(
                     color: AppColors.primaryText,
                     fontSize: 14,
                     fontFamily: AppTextStyles.urbanistFontFamily,
                     fontWeight: FontWeight.w600,
+                    fontFamilyFallback: AppTextStyles.devanagariFallback,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'The final amount and invoice will be available once the wholesaler confirms this order.',
-                  style: AppTextStyles.caption,
+                  body,
+                  style: AppTextStyles.caption.copyWith(fontFamilyFallback: AppTextStyles.devanagariFallback),
                 ),
               ],
             ),
@@ -256,12 +261,14 @@ class _PendingNotice extends StatelessWidget {
 
 class _Header extends StatelessWidget {
   const _Header({
+    required this.title,
     required this.onBack,
     required this.onDownload,
     required this.isDownloading,
     required this.isEnabled,
   });
 
+  final String title;
   final VoidCallback onBack;
   final VoidCallback? onDownload;
   final bool isDownloading;
@@ -294,13 +301,14 @@ class _Header extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              'Invoice',
+              title,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: AppTextStyles.urbanistFontFamily,
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryText,
+                fontFamilyFallback: AppTextStyles.devanagariFallback,
               ),
             ),
           ),

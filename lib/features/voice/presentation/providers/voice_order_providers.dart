@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/app_language.dart';
+import '../../../../core/localization/language_provider.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../items/domain/catalog_item.dart';
 import '../../../items/presentation/providers/items_providers.dart';
 import '../../../orders/presentation/providers/cart_providers.dart';
@@ -86,6 +89,11 @@ class VoiceOrderController extends AutoDisposeNotifier<VoiceOrderUiState> {
   Timer? _elapsedTimer;
   DateTime? _listenStartedAt;
 
+  /// Localized strings in whatever language Settings > Language currently
+  /// has selected — looked up directly from the locale rather than a
+  /// BuildContext, since this is a Riverpod controller, not a widget.
+  AppLocalizations get _l10n => lookupAppLocalizations(ref.read(languageProvider).locale);
+
   @override
   VoiceOrderUiState build() {
     _service = SpeechRecognitionService();
@@ -106,8 +114,8 @@ class VoiceOrderController extends AutoDisposeNotifier<VoiceOrderUiState> {
       state = VoiceOrderUiState(
         status: VoiceOrderStatus.error,
         errorMessage: availability == SpeechAvailability.permissionDenied
-            ? 'Microphone permission is required to use voice ordering.'
-            : "Voice ordering isn't available on this device.",
+            ? _l10n.voiceErrorPermission
+            : _l10n.voiceErrorUnavailable,
       );
       return;
     }
@@ -124,8 +132,15 @@ class VoiceOrderController extends AutoDisposeNotifier<VoiceOrderUiState> {
       state = state.copyWith(elapsed: elapsed);
     });
 
+    // Speech recognition always listens in whatever language the app UI
+    // is currently in — see VoiceRecognitionLanguageX.fromAppLanguage.
+    // Switching Settings > Language takes effect on the very next
+    // recording session (this is read fresh on each startListening()
+    // call, never cached), no restart needed.
+    final voiceLanguage = VoiceRecognitionLanguageX.fromAppLanguage(ref.read(languageProvider));
+
     await _service.startListening(
-      language: VoiceRecognitionLanguage.english,
+      language: voiceLanguage,
       onResult: (text, isFinal) {
         if (state.status != VoiceOrderStatus.listening) return;
         state = state.copyWith(transcript: text);
@@ -148,10 +163,7 @@ class VoiceOrderController extends AutoDisposeNotifier<VoiceOrderUiState> {
     if (state.status != VoiceOrderStatus.listening) return;
     if (state.transcript.trim().isEmpty) {
       _elapsedTimer?.cancel();
-      state = state.copyWith(
-        status: VoiceOrderStatus.error,
-        errorMessage: 'Something went wrong while listening. Please try again.',
-      );
+      state = state.copyWith(status: VoiceOrderStatus.error, errorMessage: _l10n.voiceErrorGeneric);
     } else {
       // Some words were already captured before the error fired — process
       // what was heard instead of discarding it.
@@ -183,7 +195,7 @@ class VoiceOrderController extends AutoDisposeNotifier<VoiceOrderUiState> {
     state = transcript.isEmpty
         ? state.copyWith(
             status: VoiceOrderStatus.error,
-            errorMessage: "We couldn't hear an order. Please try again.",
+            errorMessage: _l10n.voiceErrorNoSpeech,
           )
         : state.copyWith(status: VoiceOrderStatus.idle);
   }
@@ -220,7 +232,7 @@ class VoiceOrderController extends AutoDisposeNotifier<VoiceOrderUiState> {
     } catch (_) {
       state = state.copyWith(
         status: VoiceOrderStatus.error,
-        errorMessage: 'Could not load the item catalog. Check your connection and try again.',
+        errorMessage: _l10n.voiceErrorCatalog,
       );
       return;
     }
@@ -232,7 +244,7 @@ class VoiceOrderController extends AutoDisposeNotifier<VoiceOrderUiState> {
     if (segments.isEmpty || catalog.isEmpty) {
       state = state.copyWith(
         status: VoiceOrderStatus.error,
-        errorMessage: "We couldn't find any items from your order.",
+        errorMessage: _l10n.voiceErrorNoItems,
       );
       return;
     }
@@ -257,7 +269,7 @@ class VoiceOrderController extends AutoDisposeNotifier<VoiceOrderUiState> {
     if (!foundAnything) {
       state = state.copyWith(
         status: VoiceOrderStatus.error,
-        errorMessage: "We couldn't find any items from your order.",
+        errorMessage: _l10n.voiceErrorNoItems,
         parsedItems: results,
       );
       return;

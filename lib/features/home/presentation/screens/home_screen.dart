@@ -7,6 +7,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../../shared/widgets/cart_button.dart';
 import '../../../../shared/widgets/category_card.dart';
 import '../../../../shared/widgets/empty_state.dart';
@@ -34,6 +35,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final restaurantAsync = ref.watch(currentRestaurantProvider);
     final cartCount = ref.watch(cartTotalCountProvider);
 
@@ -56,17 +58,20 @@ class HomeScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                restaurantAsync.valueOrNull?.restaurantName ?? 'Restaurant',
+                                restaurantAsync.valueOrNull?.restaurantName ?? l10n.homeDefaultRestaurantName,
                                 style: AppTextStyles.headingScreen.copyWith(
                                   color: AppColors.secondaryText,
+                                  fontFamilyFallback: AppTextStyles.devanagariFallback,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                'Follow your routine for today',
+                                l10n.homeGreetingSubtitle,
                                 textAlign: TextAlign.center,
-                                style: AppTextStyles.caption,
+                                style: AppTextStyles.caption.copyWith(
+                                  fontFamilyFallback: AppTextStyles.devanagariFallback,
+                                ),
                               ),
                             ],
                           ),
@@ -93,11 +98,17 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.lg),
                     SearchBarField(
                       controller: TextEditingController(),
+                      placeholder: l10n.shopSearchHint,
                       onChanged: (_) {},
                       onSubmitted: (_) => context.go(AppRoutes.shop),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    Text('Browse Category', style: AppTextStyles.sectionHeading),
+                    Text(
+                      l10n.homeBrowseCategory,
+                      style: AppTextStyles.sectionHeading.copyWith(
+                        fontFamilyFallback: AppTextStyles.devanagariFallback,
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.md),
                   ],
                 ),
@@ -129,13 +140,18 @@ class HomeScreen extends ConsumerWidget {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
               sliver: SliverToBoxAdapter(
-                child: Text('Frequently Ordered', style: AppTextStyles.sectionHeading),
+                child: Text(
+                  l10n.homeFrequentlyOrdered,
+                  style: AppTextStyles.sectionHeading.copyWith(
+                    fontFamilyFallback: AppTextStyles.devanagariFallback,
+                  ),
+                ),
               ),
             ),
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: EmptyState(
                 icon: Icons.restaurant_menu_outlined,
-                message: 'Items you order often will show up here after your first order.',
+                message: l10n.homeFrequentlyOrderedEmpty,
               ),
             ),
             SliverToBoxAdapter(

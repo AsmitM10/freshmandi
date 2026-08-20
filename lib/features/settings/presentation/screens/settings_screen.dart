@@ -3,38 +3,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/localization/app_language.dart';
+import '../../../../core/localization/language_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
 /// Settings screen: account/app menu list + logout + a support banner.
 ///
-/// Business Details, Privacy Policy, About Us, Terms and Conditions, and
-/// Return Order all route to real screens now. Language is the one
-/// remaining row with no spec or backing screen — it shows a "coming
-/// soon" message on tap, same treatment already used for Home's
-/// notification bell and Cart's voice icon. Logout is real (unchanged
-/// from the previous placeholder). The row icons and the support
-/// banner's decorative art are Material-icon substitutes — the Figma
-/// export only had empty placeholder boxes for them, no real assets to
-/// port.
+/// Every row now routes to a real screen — Language was the last
+/// remaining stub, now wired to [LanguageScreen]. Row navigation is keyed
+/// on [_SettingsRowId], not the row's (localized, Hindi-in-Hindi-mode)
+/// display title — matching on the literal English title would silently
+/// break once the UI is in Hindi.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final language = ref.watch(languageProvider);
+    final rows = _buildRows(l10n, language);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundHome,
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            AppSpacing.bottomNavHeight + AppSpacing.base,
-          ),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, AppSpacing.bottomNavHeight + AppSpacing.base),
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +42,7 @@ class SettingsScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Settings',
+                        l10n.settingsTitle,
                         style: TextStyle(
                           color: AppColors.textHeading,
                           fontSize: 20,
@@ -53,10 +51,7 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'Manage your account and app preferences',
-                        style: AppTextStyles.caption,
-                      ),
+                      Text(l10n.settingsSubtitle, style: AppTextStyles.caption),
                     ],
                   ),
                 ),
@@ -76,104 +71,103 @@ class SettingsScreen extends ConsumerWidget {
                 color: AppColors.surfaceWhite,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x3F000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 1),
-                  ),
+                  BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 1)),
                 ],
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 child: Column(
                   children: [
-                    for (var i = 0; i < _rows.length; i++) ...[
+                    for (var i = 0; i < rows.length; i++) ...[
                       _SettingsRow(
-                        row: _rows[i],
-                        onTap: () => switch (_rows[i].title) {
-                          'Business Details' => context.push(
-                            AppRoutes.businessDetails,
-                          ),
-                          'Privacy Policy' => context.push(
-                            AppRoutes.privacyPolicy,
-                          ),
-                          'About Us' => context.push(AppRoutes.aboutUs),
-                          'Terms and Conditions' => context.push(
-                            AppRoutes.termsView,
-                          ),
-                          'Return Order' => context.push(AppRoutes.returnOrder),
-                          _ => _showComingSoon(context, _rows[i].title),
+                        row: rows[i],
+                        onTap: () => switch (rows[i].id) {
+                          _SettingsRowId.businessDetails => context.push(AppRoutes.businessDetails),
+                          _SettingsRowId.privacyPolicy => context.push(AppRoutes.privacyPolicy),
+                          _SettingsRowId.aboutUs => context.push(AppRoutes.aboutUs),
+                          _SettingsRowId.language => context.push(AppRoutes.language),
+                          _SettingsRowId.returnOrder => context.push(AppRoutes.returnOrder),
+                          _SettingsRowId.terms => context.push(AppRoutes.termsView),
                         },
                       ),
-                      if (i < _rows.length - 1)
-                        const Divider(color: AppColors.cardBorder, height: 1),
+                      if (i < rows.length - 1) const Divider(color: AppColors.cardBorder, height: 1),
                     ],
                   ],
                 ),
               ),
             ),
             const SizedBox(height: AppSpacing.base),
-            _HelpBanner(onTap: () => context.push(AppRoutes.contactUs)),
+            _HelpBanner(
+              title: l10n.settingsHelpTitle,
+              subtitle: l10n.settingsHelpSubtitle,
+              onTap: () => context.push(AppRoutes.contactUs),
+            ),
           ],
         ),
       ),
     );
   }
 
-  void _showComingSoon(BuildContext context, String label) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('$label is coming soon')));
+  List<_SettingsRowData> _buildRows(AppLocalizations l10n, AppLanguage language) {
+    return [
+      _SettingsRowData(
+        id: _SettingsRowId.businessDetails,
+        icon: Icons.storefront_outlined,
+        title: l10n.settingsBusinessDetailsTitle,
+        subtitle: l10n.settingsBusinessDetailsSubtitle,
+      ),
+      _SettingsRowData(
+        id: _SettingsRowId.privacyPolicy,
+        icon: Icons.verified_user_outlined,
+        title: l10n.settingsPrivacyPolicyTitle,
+        subtitle: l10n.settingsPrivacyPolicySubtitle,
+      ),
+      _SettingsRowData(
+        id: _SettingsRowId.aboutUs,
+        icon: Icons.person_outline,
+        title: l10n.settingsAboutUsTitle,
+        subtitle: l10n.settingsAboutUsSubtitle,
+      ),
+      _SettingsRowData(
+        id: _SettingsRowId.language,
+        icon: Icons.translate,
+        title: l10n.settingsLanguageTitle,
+        // Shows the currently selected language itself (not the generic
+        // "change your preferred language" description) once one has
+        // been chosen — same rule the Language screen's own row uses.
+        subtitle: language == AppLanguage.english ? l10n.languageEnglish : l10n.languageHindi,
+      ),
+      _SettingsRowData(
+        id: _SettingsRowId.returnOrder,
+        icon: Icons.assignment_return_outlined,
+        title: l10n.settingsReturnOrderTitle,
+        subtitle: l10n.settingsReturnOrderSubtitle,
+      ),
+      _SettingsRowData(
+        id: _SettingsRowId.terms,
+        icon: Icons.description_outlined,
+        title: l10n.settingsTermsTitle,
+        subtitle: l10n.settingsTermsSubtitle,
+      ),
+    ];
   }
 }
 
+enum _SettingsRowId { businessDetails, privacyPolicy, aboutUs, language, returnOrder, terms }
+
 class _SettingsRowData {
   const _SettingsRowData({
+    required this.id,
     required this.icon,
     required this.title,
     required this.subtitle,
   });
 
+  final _SettingsRowId id;
   final IconData icon;
   final String title;
   final String subtitle;
 }
-
-const _rows = [
-  _SettingsRowData(
-    icon: Icons.storefront_outlined,
-    title: 'Business Details',
-    subtitle: 'View and manage business information',
-  ),
-  _SettingsRowData(
-    icon: Icons.verified_user_outlined,
-    title: 'Privacy Policy',
-    subtitle: 'Read our privacy policy',
-  ),
-  _SettingsRowData(
-    icon: Icons.person_outline,
-    title: 'About Us',
-    subtitle: 'Learn more about our app and team',
-  ),
-  _SettingsRowData(
-    icon: Icons.translate,
-    title: 'Language',
-    subtitle: 'Change your preferred language',
-  ),
-  _SettingsRowData(
-    icon: Icons.assignment_return_outlined,
-    title: 'Return Order',
-    subtitle: 'View return policy and raise a request',
-  ),
-  _SettingsRowData(
-    icon: Icons.description_outlined,
-    title: 'Terms and Conditions',
-    subtitle: 'Know your rights and responsibilities.',
-  ),
-];
 
 class _SettingsRow extends StatelessWidget {
   const _SettingsRow({required this.row, required this.onTap});
@@ -204,19 +198,12 @@ class _SettingsRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    row.title,
-                    style: AppTextStyles.itemName.copyWith(fontSize: 14),
-                  ),
+                  Text(row.title, style: AppTextStyles.itemName.copyWith(fontSize: 14)),
                   Text(row.subtitle, style: AppTextStyles.caption),
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.secondary,
-              size: 20,
-            ),
+            const Icon(Icons.chevron_right, color: AppColors.secondary, size: 20),
           ],
         ),
       ),
@@ -247,8 +234,10 @@ class _LogoutButton extends StatelessWidget {
 }
 
 class _HelpBanner extends StatelessWidget {
-  const _HelpBanner({required this.onTap});
+  const _HelpBanner({required this.title, required this.subtitle, required this.onTap});
 
+  final String title;
+  final String subtitle;
   final VoidCallback onTap;
 
   @override
@@ -264,11 +253,7 @@ class _HelpBanner extends StatelessWidget {
             Positioned(
               right: -16,
               bottom: -16,
-              child: Icon(
-                Icons.storefront,
-                size: 110,
-                color: Colors.white.withValues(alpha: 0.12),
-              ),
+              child: Icon(Icons.storefront, size: 110, color: Colors.white.withValues(alpha: 0.12)),
             ),
             Padding(
               padding: const EdgeInsets.all(20),
@@ -282,18 +267,14 @@ class _HelpBanner extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.call_outlined,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    child: const Icon(Icons.call_outlined, color: Colors.white, size: 20),
                   ),
                   const SizedBox(width: 14),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Need a help?',
+                        title,
                         style: TextStyle(
                           color: AppColors.ctaText,
                           fontSize: 16,
@@ -302,7 +283,7 @@ class _HelpBanner extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "We're here for you.",
+                        subtitle,
                         style: TextStyle(
                           color: AppColors.ctaText,
                           fontSize: 16,

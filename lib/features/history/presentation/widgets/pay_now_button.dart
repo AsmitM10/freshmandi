@@ -5,6 +5,7 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../orders/presentation/providers/orders_providers.dart';
 
 /// Opens Razorpay Checkout for an order's unpaid invoice. The amount comes
@@ -125,12 +126,13 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.ctaText),
                   )
                 : Text(
-                    'Pay Now',
+                    AppLocalizations.of(context).orderPayNow,
                     style: TextStyle(
                       color: AppColors.ctaText,
                       fontSize: 14,
                       fontFamily: AppTextStyles.urbanistFontFamily,
                       fontWeight: FontWeight.w600,
+                      fontFamilyFallback: AppTextStyles.devanagariFallback,
                     ),
                   ),
           ),

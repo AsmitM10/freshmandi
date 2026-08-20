@@ -1,3 +1,5 @@
+import '../../../core/localization/app_language.dart';
+
 /// Tunables for Voice Order that aren't sourced from Figma or Supabase —
 /// centralized here, same convention as [AppConfig] in core/constants.
 class VoiceOrderConfig {
@@ -21,23 +23,28 @@ class VoiceOrderConfig {
   static const Duration pauseBetweenWords = Duration(seconds: 8);
 }
 
-/// Speech recognizer locale. Only [english] is wired up today — Hindi and
-/// Marathi are declared so the rest of the voice-order architecture
-/// (service/controller/screen) never has to change to add them later; only
-/// this enum, [VoiceRecognitionLanguageX.localeId], and (once real Hindi/
-/// Marathi item aliases exist in the catalog) the item matcher would need
-/// updating.
-enum VoiceRecognitionLanguage { english }
+/// Speech recognizer locale — mirrors FreshMandi's two supported app
+/// languages ([AppLanguage] in core/localization) exactly, via
+/// [VoiceRecognitionLanguageX.fromAppLanguage]. There is deliberately no
+/// separate "voice language" setting anywhere in the UI: Voice Order
+/// always listens in whatever language Settings > Language currently has
+/// selected, so switching the app language and switching the speech
+/// recognizer language can never drift apart into two different values.
+enum VoiceRecognitionLanguage { english, hindi }
 
 extension VoiceRecognitionLanguageX on VoiceRecognitionLanguage {
-  /// BCP-47 locale id passed to `SpeechToText.listen(localeId: ...)`.
-  /// `en_IN` (not `en_US`) so on-device recognition is tuned for
-  /// Indian-accented English and mixed Hindi/English grocery terms
-  /// ("tamatar", "kilo") where the device's language pack supports it.
+  /// BCP-47-style locale id passed to `SpeechToText.listen(localeId: ...)`,
+  /// in the underscore form `SpeechToText.locales()` actually returns on
+  /// device (not a bare hyphenated tag) — `en_IN`/`hi_IN` so on-device
+  /// recognition is tuned for Indian-accented speech and mixed Hindi/
+  /// English grocery terms ("tamatar", "kilo") where the device's
+  /// language pack supports it.
   String get localeId {
     switch (this) {
       case VoiceRecognitionLanguage.english:
         return 'en_IN';
+      case VoiceRecognitionLanguage.hindi:
+        return 'hi_IN';
     }
   }
 
@@ -45,6 +52,19 @@ extension VoiceRecognitionLanguageX on VoiceRecognitionLanguage {
     switch (this) {
       case VoiceRecognitionLanguage.english:
         return 'English';
+      case VoiceRecognitionLanguage.hindi:
+        return 'हिंदी';
+    }
+  }
+
+  /// The one place `AppLanguage` (Settings > Language) turns into a
+  /// speech-recognition locale — en → en_IN, hi → hi_IN.
+  static VoiceRecognitionLanguage fromAppLanguage(AppLanguage language) {
+    switch (language) {
+      case AppLanguage.english:
+        return VoiceRecognitionLanguage.english;
+      case AppLanguage.hindi:
+        return VoiceRecognitionLanguage.hindi;
     }
   }
 }

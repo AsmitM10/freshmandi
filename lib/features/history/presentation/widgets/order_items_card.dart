@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../items/domain/catalog_item.dart';
 import '../../../items/presentation/providers/items_providers.dart';
 import '../../../orders/domain/order_line_item.dart';
@@ -26,6 +27,7 @@ class OrderItemsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final catalog = ref.watch(catalogProvider).valueOrNull ?? const <CatalogItem>[];
 
     return Container(
@@ -47,38 +49,41 @@ class OrderItemsCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Recognized Order',
+                    l10n.recognizedOrder,
                     style: TextStyle(
                       color: AppColors.ctaText,
                       fontSize: 12,
                       fontFamily: AppTextStyles.fontFamily,
                       fontWeight: FontWeight.w400,
+                      fontFamilyFallback: AppTextStyles.devanagariFallback,
                     ),
                   ),
                 ),
                 SizedBox(
                   width: _quantityColumnWidth,
                   child: Text(
-                    'Quantity',
+                    l10n.quantityLabel,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppColors.ctaText,
                       fontSize: 12,
                       fontFamily: AppTextStyles.fontFamily,
                       fontWeight: FontWeight.w400,
+                      fontFamilyFallback: AppTextStyles.devanagariFallback,
                     ),
                   ),
                 ),
                 SizedBox(
                   width: _statusColumnWidth,
                   child: Text(
-                    'Live',
+                    l10n.liveLabel,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppColors.accentGreen,
                       fontSize: 12,
                       fontFamily: AppTextStyles.fontFamily,
                       fontWeight: FontWeight.w400,
+                      fontFamilyFallback: AppTextStyles.devanagariFallback,
                     ),
                   ),
                 ),

@@ -6,6 +6,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../orders/presentation/providers/cart_providers.dart';
 import '../../../orders/presentation/providers/orders_providers.dart';
 
@@ -97,12 +98,13 @@ class _RepeatOrderButtonState extends ConsumerState<RepeatOrderButton> {
                     ),
                   )
                 : Text(
-                    'Repeat Order',
+                    AppLocalizations.of(context).orderRepeat,
                     style: TextStyle(
                       color: widget.filled ? AppColors.ctaText : AppColors.secondary,
                       fontSize: 14,
                       fontFamily: AppTextStyles.urbanistFontFamily,
                       fontWeight: FontWeight.w600,
+                      fontFamilyFallback: AppTextStyles.devanagariFallback,
                     ),
                   ),
           ),

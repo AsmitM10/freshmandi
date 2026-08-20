@@ -33,6 +33,7 @@ class CategoryChip extends StatelessWidget {
             label,
             style: AppTextStyles.bodySmall.copyWith(
               color: isSelected ? AppColors.ctaText : AppColors.primaryText,
+              fontFamilyFallback: AppTextStyles.devanagariFallback,
             ),
           ),
         ),

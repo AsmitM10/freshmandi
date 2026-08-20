@@ -8,6 +8,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../../shared/widgets/cart_button.dart';
 import '../../../../shared/widgets/category_chip.dart';
 import '../../../../shared/widgets/empty_state.dart';
@@ -62,6 +63,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final cartCount = ref.watch(cartTotalCountProvider);
 
     return Scaffold(
@@ -76,9 +78,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Shop',
+                      l10n.shopTitle,
                       style: AppTextStyles.headingScreen.copyWith(
                         color: AppColors.textHeading,
+                        fontFamilyFallback: AppTextStyles.devanagariFallback,
                       ),
                     ),
                   ),
@@ -93,6 +96,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: SearchBarField(
                 controller: _searchController,
+                placeholder: l10n.shopSearchHint,
                 onChanged: _handleSearchChanged,
                 onCleared: _handleSearchCleared,
               ),
@@ -124,7 +128,7 @@ class _CategoryChipRow extends ConsumerWidget {
         itemBuilder: (context, index) {
           final category = ItemCategory.values[index];
           return CategoryChip(
-            label: category.label,
+            label: category.localizedLabel(AppLocalizations.of(context)),
             isSelected: category == selected,
             onTap: () => ref.read(selectedCategoryProvider.notifier).state = category,
           );
@@ -139,6 +143,7 @@ class _FilteredGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final itemsAsync = ref.watch(filteredItemsProvider);
     final isSearching = ref.watch(searchQueryProvider).trim().isNotEmpty;
 
@@ -146,19 +151,17 @@ class _FilteredGrid extends ConsumerWidget {
       loading: () => const LoadingState(),
       error: (error, _) => EmptyState(
         icon: Icons.wifi_off_outlined,
-        message: "Couldn't load items. Check your connection and try again.",
+        message: l10n.shopLoadError,
         action: TextButton(
           onPressed: () => ref.refresh(catalogProvider),
-          child: const Text('Retry'),
+          child: Text(l10n.retry),
         ),
       ),
       data: (items) {
         if (items.isEmpty) {
           return EmptyState(
             icon: isSearching ? Icons.search_off_outlined : Icons.eco_outlined,
-            message: isSearching
-                ? 'No items match your search.'
-                : 'No items in this category yet.',
+            message: isSearching ? l10n.shopNoSearchResults : l10n.shopNoCategoryItems,
           );
         }
         return _ItemGrid(items: items);

@@ -1,3 +1,5 @@
+import '../../../l10n/gen/app_localizations.dart';
+
 /// The three catalog categories (Figma spec section G/C). Fixed set — the
 /// design does not support arbitrary/admin-defined categories.
 enum ItemCategory { indianVegetables, fruits, exoticVegetables }
@@ -16,7 +18,9 @@ extension ItemCategoryX on ItemCategory {
     }
   }
 
-  /// Category chip / card label text.
+  /// English category chip/card label — only used as a non-visual
+  /// fallback (e.g. logging); screens should call [localizedLabel]
+  /// instead so the label follows the selected app language.
   String get label {
     switch (this) {
       case ItemCategory.indianVegetables:
@@ -25,6 +29,21 @@ extension ItemCategoryX on ItemCategory {
         return 'Fruits';
       case ItemCategory.exoticVegetables:
         return 'Exotic Veg';
+    }
+  }
+
+  /// Category chip/card label text in the current app language. This is
+  /// UI copy (a fixed set of 3 category names FreshMandi itself defines),
+  /// not database content, so — unlike item names — it's in scope for
+  /// localization.
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case ItemCategory.indianVegetables:
+        return l10n.categoryIndianVegetables;
+      case ItemCategory.fruits:
+        return l10n.categoryFruits;
+      case ItemCategory.exoticVegetables:
+        return l10n.categoryExoticVeg;
     }
   }
 }

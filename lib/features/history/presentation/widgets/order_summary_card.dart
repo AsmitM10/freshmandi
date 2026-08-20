@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../orders/domain/order_history_entry.dart';
 
 /// The green-header/cream-body order summary card — shared by the History
@@ -19,6 +20,7 @@ class OrderSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -79,14 +81,14 @@ class OrderSummaryCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _Field(
-                            label: 'ORDER NO.',
+                            label: l10n.orderNumberLabel,
                             value: entry.orderNumber,
                           ),
                         ),
                         const _DashedDivider(axis: Axis.vertical),
                         Expanded(
                           child: _Field(
-                            label: 'PRICE',
+                            label: l10n.priceLabel,
                             value: entry.hasInvoice
                                 ? '₹${NumberFormat('#,##0').format(entry.invoiceTotal)}'
                                 : '-',
@@ -96,7 +98,7 @@ class OrderSummaryCard extends StatelessWidget {
                         ),
                         const _DashedDivider(axis: Axis.vertical),
                         Expanded(
-                          child: _Field(label: 'ITEMS', value: '${entry.itemCount}'),
+                          child: _Field(label: l10n.itemsLabel, value: '${entry.itemCount}'),
                         ),
                       ],
                     ),
@@ -135,12 +137,13 @@ class _Field extends StatelessWidget {
         Text(
           label,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.labelGray,
             fontSize: 12,
             fontFamily: AppTextStyles.fontFamily,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.48,
+            fontFamilyFallback: AppTextStyles.devanagariFallback,
           ),
         ),
         const SizedBox(height: 6),
@@ -218,16 +221,17 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final String text;
     final Color color;
     if (!entry.hasInvoice) {
-      text = 'Pending';
+      text = l10n.statusPending;
       color = AppColors.accentYellow;
     } else if (entry.isPaid) {
-      text = 'Paid';
+      text = l10n.statusPaid;
       color = AppColors.statusPaidGreen;
     } else {
-      text = 'Unpaid';
+      text = l10n.statusUnpaid;
       color = AppColors.accentYellow;
     }
     return Container(
@@ -235,11 +239,12 @@ class _StatusBadge extends StatelessWidget {
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(50)),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.primaryText,
           fontSize: 13,
           fontFamily: AppTextStyles.urbanistFontFamily,
           fontWeight: FontWeight.w500,
+          fontFamilyFallback: AppTextStyles.devanagariFallback,
         ),
       ),
     );
@@ -278,6 +283,7 @@ class OrderActionButton extends StatelessWidget {
                 fontSize: 14,
                 fontFamily: AppTextStyles.urbanistFontFamily,
                 fontWeight: FontWeight.w600,
+                fontFamilyFallback: AppTextStyles.devanagariFallback,
               ),
             ),
           ),

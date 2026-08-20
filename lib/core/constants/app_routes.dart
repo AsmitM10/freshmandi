@@ -46,6 +46,7 @@ class AppRoutes {
   static const String voiceOrder = '/voice-order';
   static const String editDetails = '/edit-details';
   static const String contactUs = '/contact-us';
+  static const String language = '/settings/language';
 
   static const Set<String> statusGatedRoutes = {
     pendingApproval,

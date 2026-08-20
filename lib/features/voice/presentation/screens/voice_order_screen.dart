@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../providers/voice_order_providers.dart';
 import '../widgets/item_resolution_sheet.dart';
 
@@ -26,6 +27,7 @@ class VoiceOrderScreen extends ConsumerWidget {
       if (next.status == VoiceOrderStatus.result) _handleResult(context, ref, next);
     });
 
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(voiceOrderControllerProvider);
     final controller = ref.read(voiceOrderControllerProvider.notifier);
 
@@ -40,26 +42,28 @@ class VoiceOrderScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Voice Order',
+                  Text(
+                    l10n.voiceOrderTitle,
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 24,
                       fontFamily: AppTextStyles.urbanistFontFamily,
                       fontWeight: FontWeight.w600,
+                      fontFamilyFallback: AppTextStyles.devanagariFallback,
                     ),
                   ),
-                  const Text(
-                    'Tap the mic and speak your order items',
+                  Text(
+                    l10n.voiceOrderSubtitle,
                     style: TextStyle(
                       color: AppColors.primaryText,
                       fontSize: 12,
                       fontFamily: AppTextStyles.fontFamily,
                       fontWeight: FontWeight.w400,
+                      fontFamilyFallback: AppTextStyles.devanagariFallback,
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _InstructionCard(state: state),
+                  _InstructionCard(state: state, hint: l10n.voiceOrderHint),
                 ],
               ),
             ),
@@ -68,7 +72,7 @@ class VoiceOrderScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: _GenerateListButton(state: state, controller: controller),
+              child: _GenerateListButton(state: state, controller: controller, label: l10n.voiceGenerateList),
             ),
           ],
         ),
@@ -78,6 +82,7 @@ class VoiceOrderScreen extends ConsumerWidget {
 
   void _handleResult(BuildContext context, WidgetRef ref, VoiceOrderUiState state) {
     if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context);
     final controller = ref.read(voiceOrderControllerProvider.notifier);
 
     final ambiguousIndex = state.firstAmbiguousIndex;
@@ -98,19 +103,15 @@ class VoiceOrderScreen extends ConsumerWidget {
     if (summary.addedItemCount == 0) {
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text("We couldn't find any items from your order.")));
+        ..showSnackBar(SnackBar(content: Text(l10n.voiceErrorNoItems)));
       return;
     }
     if (summary.unmatchedCount > 0) {
-      final itemWord = summary.unmatchedCount == 1 ? 'item' : 'items';
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text(
-              'Added ${summary.addedItemCount} item(s) to your cart. '
-              "Couldn't identify ${summary.unmatchedCount} $itemWord.",
-            ),
+            content: Text(l10n.voiceAddedToCart(summary.addedItemCount, summary.unmatchedCount)),
           ),
         );
     }
@@ -171,9 +172,10 @@ class _Header extends StatelessWidget {
 }
 
 class _InstructionCard extends StatelessWidget {
-  const _InstructionCard({required this.state});
+  const _InstructionCard({required this.state, required this.hint});
 
   final VoiceOrderUiState state;
+  final String hint;
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +184,7 @@ class _InstructionCard extends StatelessWidget {
         ? state.errorMessage!
         : state.transcript.isNotEmpty
         ? state.transcript
-        : 'Speak like "20 kilo tamatar" or "kal ka order repeat  karo"';
+        : hint;
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 120),
@@ -201,6 +203,7 @@ class _InstructionCard extends StatelessWidget {
             fontSize: 14,
             fontFamily: AppTextStyles.fontFamily,
             fontWeight: FontWeight.w400,
+            fontFamilyFallback: AppTextStyles.devanagariFallback,
           ),
         ),
       ),
@@ -353,10 +356,11 @@ class _MicSection extends StatelessWidget {
 }
 
 class _GenerateListButton extends StatelessWidget {
-  const _GenerateListButton({required this.state, required this.controller});
+  const _GenerateListButton({required this.state, required this.controller, required this.label});
 
   final VoiceOrderUiState state;
   final VoiceOrderController controller;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -383,14 +387,15 @@ class _GenerateListButton extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
-                : const Text(
-                    'Generate List',
+                : Text(
+                    label,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontFamily: AppTextStyles.fontFamily,
                       fontWeight: FontWeight.w600,
+                      fontFamilyFallback: AppTextStyles.devanagariFallback,
                     ),
                   ),
           ),

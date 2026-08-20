@@ -19,6 +19,7 @@ import '../../features/settings/presentation/screens/business_details_screen.dar
 import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
 import '../../features/settings/presentation/screens/contact_us_screen.dart';
 import '../../features/settings/presentation/screens/edit_details_screen.dart';
+import '../../features/settings/presentation/screens/language_screen.dart';
 import '../../features/settings/presentation/screens/return_order_screen.dart';
 import '../../features/voice/presentation/screens/voice_order_screen.dart';
 import '../../features/registration/presentation/screens/registration_screen.dart';
@@ -136,6 +137,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.contactUs,
         builder: (context, state) => const ContactUsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.language,
+        builder: (context, state) => const LanguageScreen(),
       ),
       GoRoute(
         path: AppRoutes.termsView,

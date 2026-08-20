@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/gen/app_localizations.dart';
 
 /// Figma spec section R/S: Home + Shop cluster on the left, History +
 /// Settings on the right, with a gap in the middle for the floating voice
@@ -28,6 +29,7 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       height: AppSpacing.bottomNavHeight,
       child: Stack(
@@ -53,7 +55,7 @@ class BottomNavBar extends StatelessWidget {
                         svgAsset: currentIndex == 0
                             ? 'assets/icons/nav_home.svg'
                             : 'assets/icons/nav_home_outline.svg',
-                        label: 'Home',
+                        label: l10n.navHome,
                         isActive: currentIndex == 0,
                         onTap: () => onTabSelected(0),
                       ),
@@ -63,7 +65,7 @@ class BottomNavBar extends StatelessWidget {
                         svgAsset: currentIndex == 1
                             ? 'assets/icons/nav_shop_filled.svg'
                             : 'assets/icons/nav_shop.svg',
-                        label: 'Shop',
+                        label: l10n.navShop,
                         isActive: currentIndex == 1,
                         onTap: () => onTabSelected(1),
                       ),
@@ -76,7 +78,7 @@ class BottomNavBar extends StatelessWidget {
                         svgAsset: currentIndex == 2
                             ? 'assets/icons/nav_history_filled.svg'
                             : 'assets/icons/nav_history.svg',
-                        label: 'History',
+                        label: l10n.navHistory,
                         isActive: currentIndex == 2,
                         onTap: () => onTabSelected(2),
                       ),
@@ -86,7 +88,7 @@ class BottomNavBar extends StatelessWidget {
                         svgAsset: currentIndex == 3
                             ? 'assets/icons/nav_settings_filled.svg'
                             : 'assets/icons/nav_settings.svg',
-                        label: 'Settings',
+                        label: l10n.navSettings,
                         isActive: currentIndex == 3,
                         onTap: () => onTabSelected(3),
                       ),
@@ -131,7 +133,16 @@ class _NavItem extends StatelessWidget {
           children: [
             SvgPicture.asset(svgAsset, width: 24, height: 24),
             const SizedBox(height: 6),
-            Text(label, style: AppTextStyles.navLabel.copyWith(color: color)),
+            Text(
+              label,
+              // Poppins has no Devanagari glyphs — falling back to Hind
+              // (a Devanagari+Latin Google Font) covers Hindi labels
+              // without changing how the English labels render at all.
+              style: AppTextStyles.navLabel.copyWith(
+                color: color,
+                fontFamilyFallback: AppTextStyles.devanagariFallback,
+              ),
+            ),
           ],
         ),
       ),

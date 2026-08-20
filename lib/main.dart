@@ -3,13 +3,17 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/constants/env_keys.dart';
+import 'core/localization/app_language.dart';
+import 'core/localization/language_provider.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/secure_session_storage.dart';
+import 'l10n/gen/app_localizations.dart';
 
 void main() {
   // TEMPORARY debug instrumentation — remove once the "not navigating to
@@ -71,11 +75,20 @@ class FreshMandiApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
+    final language = ref.watch(languageProvider);
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'FreshMandi',
       theme: AppTheme.theme,
       routerConfig: router,
+      locale: language.locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }

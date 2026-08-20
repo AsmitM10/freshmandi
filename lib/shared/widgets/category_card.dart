@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../features/items/domain/item_category.dart';
+import '../../l10n/gen/app_localizations.dart';
 
 /// "Browse Category" card — shared by Home and Cart's "Add more" section.
 ///
@@ -64,8 +65,11 @@ class CategoryCard extends StatelessWidget {
               child: SizedBox(
                 width: 87,
                 child: Text(
-                  category.label,
-                  style: AppTextStyles.categoryLabel.copyWith(color: AppColors.secondaryText),
+                  category.localizedLabel(AppLocalizations.of(context)),
+                  style: AppTextStyles.categoryLabel.copyWith(
+                    color: AppColors.secondaryText,
+                    fontFamilyFallback: AppTextStyles.devanagariFallback,
+                  ),
                 ),
               ),
             ),

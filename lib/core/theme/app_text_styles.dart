@@ -12,6 +12,16 @@ class AppTextStyles {
   static const String fontFamily = 'Poppins';
   static const String urbanistFontFamily = 'Urbanist';
 
+  /// Neither Poppins nor Urbanist (this app's only two type families) has
+  /// Devanagari glyphs, so Hindi text needs an explicit fallback — Hind is
+  /// a Devanagari+Latin Google Font in the same humanist-sans register.
+  /// Merge into any style used for localized text, e.g.
+  /// `AppTextStyles.caption.copyWith(fontFamilyFallback: AppTextStyles.devanagariFallback)`.
+  /// Relying on automatic OS font substitution alone isn't enough — it's
+  /// inconsistent on native and largely absent on Flutter web, which is
+  /// this app's primary dev/test target.
+  static List<String> get devanagariFallback => [GoogleFonts.hind().fontFamily!];
+
   static const TextStyle heading = TextStyle(
     fontFamily: fontFamily,
     fontSize: 24,

@@ -32,7 +32,10 @@ class EmptyState extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.placeholder),
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.placeholder,
+                fontFamilyFallback: AppTextStyles.devanagariFallback,
+              ),
             ),
             if (action != null) ...[const SizedBox(height: 16), action!],
           ],
