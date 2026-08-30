@@ -38,9 +38,7 @@ class FileValidators {
 
     final size = sizeInBytes ?? bytes.length;
     if (size > AppConfig.fssaiMaxSizeBytes) {
-      return const FileValidationResult.invalid(
-        'File is larger than 2 MB',
-      );
+      return const FileValidationResult.invalid('File is larger than 2 MB');
     }
     if (size <= 0) {
       return const FileValidationResult.invalid('File appears to be empty');

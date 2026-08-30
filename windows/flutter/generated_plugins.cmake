@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   flutter_secure_storage_windows
   gal
+  share_plus
   speech_to_text_windows
   url_launcher_windows
 )

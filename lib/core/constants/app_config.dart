@@ -32,4 +32,14 @@ class AppConfig {
   /// agreed to (mirrors the "Last Updated" date shown on the T&C screen).
   /// Bump this if the terms copy ever changes materially.
   static const String termsVersion = 'v1-2026-07-22';
+
+  /// The one admin's login identity. Not a real phone number or email —
+  /// [adminPhoneDigits] is purely a client-side trigger typed into the same
+  /// phone field restaurants use, and [adminEmail] is the email of the one
+  /// manually-created Supabase Auth user backing the admin account (see
+  /// migration `20260825000001_admin_login.sql`). Deliberately avoids the
+  /// SMS/Twilio pipeline entirely — the "OTP" boxes are used as a 6-digit
+  /// PIN checked via real Supabase password auth instead.
+  static const String adminPhoneDigits = '9999999999';
+  static const String adminEmail = 'admin@freshmandi.app';
 }

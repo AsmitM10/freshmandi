@@ -7,6 +7,12 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/status_screens.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/screens/terms_screen.dart';
+import '../../features/admin/presentation/screens/add_sale_screen.dart';
+import '../../features/admin/presentation/screens/admin_home_screen.dart';
+import '../../features/admin/presentation/screens/admin_placeholder_screen.dart';
+import '../../features/admin/presentation/screens/admin_shell_screen.dart';
+import '../../features/admin/presentation/screens/all_transactions_screen.dart';
+import '../../features/admin/presentation/screens/day_book_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/history/presentation/screens/order_detail_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
@@ -93,7 +99,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.register,
         builder: (context, state) => RegistrationScreen(
-          termsAcceptedAt: state.extra is DateTime ? state.extra as DateTime : null,
+          termsAcceptedAt: state.extra is DateTime
+              ? state.extra as DateTime
+              : null,
         ),
       ),
       GoRoute(
@@ -112,7 +120,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.accountSuspended,
         builder: (context, state) => const AccountSuspendedScreen(),
       ),
-      GoRoute(path: AppRoutes.cart, builder: (context, state) => const CartScreen()),
+      GoRoute(
+        path: AppRoutes.cart,
+        builder: (context, state) => const CartScreen(),
+      ),
       GoRoute(
         path: '${AppRoutes.orderSuccess}/:orderId',
         builder: (context, state) =>
@@ -144,7 +155,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.termsView,
-        builder: (context, state) => const TermsAndConditionsScreen(readOnly: true),
+        builder: (context, state) =>
+            const TermsAndConditionsScreen(readOnly: true),
       ),
       GoRoute(
         path: AppRoutes.privacyPolicy,
@@ -161,6 +173,61 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.voiceOrder,
         builder: (context, state) => const VoiceOrderScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.addSale,
+        builder: (context, state) => AddSaleScreen(
+          orderId: state.extra is String ? state.extra as String : null,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.dayBook,
+        builder: (context, state) => const DayBookScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.allTransactions,
+        builder: (context, state) => const AllTransactionsScreen(),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AdminShellScreen(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminHome,
+                builder: (context, state) => const AdminHomeScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminStats,
+                builder: (context, state) =>
+                    const AdminPlaceholderScreen(title: 'Stats'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminParties,
+                builder: (context, state) =>
+                    const AdminPlaceholderScreen(title: 'Parties'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminItems,
+                builder: (context, state) =>
+                    const AdminPlaceholderScreen(title: 'Items'),
+              ),
+            ],
+          ),
+        ],
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

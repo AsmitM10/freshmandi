@@ -46,6 +46,8 @@ AppException mapErrorToAppException(Object error) {
         return const AppException(
           'New sign-ups are temporarily unavailable. Please try again later.',
         );
+      case 'invalid_credentials':
+        return const AppException('Incorrect PIN. Please try again.');
     }
 
     final message = error.message.toLowerCase();

@@ -89,6 +89,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (session == null) return AppRoutes.welcome;
 
     try {
+      final isAdmin = await ref.read(authRepositoryProvider).isAdmin();
+      if (isAdmin) return AppRoutes.adminHome;
+    } catch (_) {
+      // Couldn't verify admin status — fall through to the restaurant
+      // check rather than failing the whole resolution.
+    }
+
+    try {
       final restaurant = await ref.read(currentRestaurantProvider.future);
       if (restaurant == null) {
         // Signed in but registration was never completed — treat as

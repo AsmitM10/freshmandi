@@ -48,6 +48,18 @@ class AppRoutes {
   static const String contactUs = '/contact-us';
   static const String language = '/settings/language';
 
+  // Admin section — own 4-tab shell (Home/Stats/Parties/Items), reached
+  // only via the same phone+OTP-styled login screen (the app auto-detects
+  // the seeded admin phone number and routes here instead of the
+  // restaurant flow).
+  static const String adminHome = '/admin';
+  static const String adminStats = '/admin/stats';
+  static const String adminParties = '/admin/parties';
+  static const String adminItems = '/admin/items';
+  static const String addSale = '/admin/add-sale';
+  static const String dayBook = '/admin/day-book';
+  static const String allTransactions = '/admin/all-transactions';
+
   static const Set<String> statusGatedRoutes = {
     pendingApproval,
     accountRejected,
@@ -56,5 +68,9 @@ class AppRoutes {
     shop,
     history,
     settings,
+    adminHome,
+    adminStats,
+    adminParties,
+    adminItems,
   };
 }

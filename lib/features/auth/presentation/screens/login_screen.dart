@@ -53,11 +53,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   String get _e164Phone => Validators.toE164(_phoneController.text.trim());
 
+  /// The one admin's phone field is a client-side UI trigger only — not
+  /// sent to Supabase as a real phone number. See AppConfig.adminPhoneDigits.
+  bool get _isAdminPhone => _phoneController.text.trim() == AppConfig.adminPhoneDigits;
+
   Future<void> _sendOtp() async {
     if (_isSendingOtp || _resendCooldown > 0) return;
     final phoneError = Validators.phoneDigits(_phoneController.text);
     if (phoneError != null) {
       setState(() => _phoneError = phoneError);
+      return;
+    }
+
+    if (_isAdminPhone) {
+      // No real phone number to send an SMS to — just reveal the code
+      // boxes, which double as PIN entry for the admin sign-in path below.
+      setState(() {
+        _isOtpSent = true;
+        _otpCode = '';
+        _otpResetToken++;
+        _otpError = null;
+      });
       return;
     }
 
@@ -126,12 +142,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    // ignore: avoid_print
-    print('[LOGIN] verifying otp for $_e164Phone...');
     setState(() {
       _isVerifying = true;
       _otpError = null;
     });
+
+    if (_isAdminPhone) {
+      try {
+        await ref.read(authRepositoryProvider).signInAdmin(_otpCode);
+        await ref.read(authRepositoryProvider).claimAdmin();
+        if (!mounted) return;
+        context.go(AppRoutes.adminHome);
+      } catch (error) {
+        if (mounted) {
+          setState(() => _otpError = mapErrorToAppException(error).message);
+        }
+      } finally {
+        if (mounted) setState(() => _isVerifying = false);
+      }
+      return;
+    }
+
+    // ignore: avoid_print
+    print('[LOGIN] verifying otp for $_e164Phone...');
     try {
       await ref
           .read(authRepositoryProvider)
