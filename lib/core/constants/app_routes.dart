@@ -48,17 +48,20 @@ class AppRoutes {
   static const String contactUs = '/contact-us';
   static const String language = '/settings/language';
 
-  // Admin section — own 4-tab shell (Home/Stats/Parties/Items), reached
-  // only via the same phone+OTP-styled login screen (the app auto-detects
-  // the seeded admin phone number and routes here instead of the
-  // restaurant flow).
-  static const String adminHome = '/admin';
-  static const String adminStats = '/admin/stats';
-  static const String adminParties = '/admin/parties';
+  // Admin section — the Business Console (lib/screens/*), reached only via
+  // the same phone+OTP-styled login screen (the app auto-detects the
+  // seeded admin phone number and routes here instead of the restaurant
+  // flow). Every path is namespaced under /admin so it can never collide
+  // with a restaurant-facing route (e.g. /admin/settings vs. /settings).
+  static const String adminHome = '/admin/dashboard';
+  static const String adminOrders = '/admin/orders';
   static const String adminItems = '/admin/items';
-  static const String addSale = '/admin/add-sale';
-  static const String dayBook = '/admin/day-book';
-  static const String allTransactions = '/admin/all-transactions';
+  static const String adminCustomers = '/admin/customers';
+  static const String adminTransactions = '/admin/transactions';
+  static const String adminSettings = '/admin/settings';
+  static const String adminReports = '/admin/reports';
+  static const String adminSales = '/admin/sales';
+  static const String adminNotifications = '/admin/notifications';
 
   static const Set<String> statusGatedRoutes = {
     pendingApproval,
@@ -69,8 +72,9 @@ class AppRoutes {
     history,
     settings,
     adminHome,
-    adminStats,
-    adminParties,
+    adminOrders,
     adminItems,
+    adminCustomers,
+    adminTransactions,
   };
 }

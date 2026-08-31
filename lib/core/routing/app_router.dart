@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,12 +8,6 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/status_screens.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/screens/terms_screen.dart';
-import '../../features/admin/presentation/screens/add_sale_screen.dart';
-import '../../features/admin/presentation/screens/admin_home_screen.dart';
-import '../../features/admin/presentation/screens/admin_placeholder_screen.dart';
-import '../../features/admin/presentation/screens/admin_shell_screen.dart';
-import '../../features/admin/presentation/screens/all_transactions_screen.dart';
-import '../../features/admin/presentation/screens/day_book_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/history/presentation/screens/order_detail_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
@@ -30,10 +25,29 @@ import '../../features/settings/presentation/screens/return_order_screen.dart';
 import '../../features/voice/presentation/screens/voice_order_screen.dart';
 import '../../features/registration/presentation/screens/registration_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../screens/customers/customer_detail_screen.dart';
+import '../../screens/customers/customers_list_screen.dart';
+import '../../screens/dashboard/dashboard_screen.dart';
+import '../../screens/items/items_screen.dart';
+import '../../screens/notifications_screen_stub.dart';
+import '../../screens/orders/order_detail_screen.dart' as admin;
+import '../../screens/orders/orders_list_screen.dart';
+import '../../screens/reports_screen_stub.dart';
+import '../../screens/sales_screen_stub.dart';
+import '../../screens/settings/settings_screen.dart' as admin;
+import '../../screens/transactions/transactions_screen.dart';
+import '../../widgets/app_shell.dart';
 import '../constants/app_config.dart';
 import '../constants/app_routes.dart';
+import '../theme/app_theme.dart';
 import 'main_shell_screen.dart';
 import 'router_refresh_stream.dart';
+
+/// Wraps a Business Console (admin app) screen in its own ThemeData —
+/// applied only to this route subtree via a `Theme` override, so the
+/// restaurant-facing app's MaterialApp theme (AppTheme.theme) is
+/// unaffected everywhere else.
+Widget _admin(Widget child) => Theme(data: AppTheme.light, child: child);
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final client = ref.watch(supabaseClientProvider);
@@ -174,60 +188,65 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.voiceOrder,
         builder: (context, state) => const VoiceOrderScreen(),
       ),
+      // Business Console (admin app) — own bottom-nav shell (Home/Orders/
+      // Items/Customers/Money), reached only via the same admin-detected
+      // login above. Every screen renders through `_admin(...)`, which
+      // applies AppTheme.light (the Business Console's own design system)
+      // to just this subtree.
+      ShellRoute(
+        builder: (context, state, child) => _admin(AppShell(child: child)),
+        routes: [
+          GoRoute(
+            path: AppRoutes.adminHome,
+            builder: (context, state) => const DashboardScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.adminOrders,
+            builder: (context, state) => const OrdersListScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.adminItems,
+            builder: (context, state) => const ItemsScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.adminCustomers,
+            builder: (context, state) => const CustomersListScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.adminTransactions,
+            builder: (context, state) => const TransactionsScreen(),
+          ),
+        ],
+      ),
+      // Detail / "More" destinations — pushed outside the shell (own back
+      // button, no bottom nav), same pattern as the restaurant app below.
       GoRoute(
-        path: AppRoutes.addSale,
-        builder: (context, state) => AddSaleScreen(
-          orderId: state.extra is String ? state.extra as String : null,
+        path: '${AppRoutes.adminOrders}/:id',
+        builder: (context, state) => _admin(
+          admin.OrderDetailScreen(orderId: state.pathParameters['id']!),
         ),
       ),
       GoRoute(
-        path: AppRoutes.dayBook,
-        builder: (context, state) => const DayBookScreen(),
+        path: '${AppRoutes.adminCustomers}/:id',
+        builder: (context, state) => _admin(
+          CustomerDetailScreen(customerId: state.pathParameters['id']!),
+        ),
       ),
       GoRoute(
-        path: AppRoutes.allTransactions,
-        builder: (context, state) => const AllTransactionsScreen(),
+        path: AppRoutes.adminSettings,
+        builder: (context, state) => _admin(const admin.SettingsScreen()),
       ),
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            AdminShellScreen(navigationShell: navigationShell),
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.adminHome,
-                builder: (context, state) => const AdminHomeScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.adminStats,
-                builder: (context, state) =>
-                    const AdminPlaceholderScreen(title: 'Stats'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.adminParties,
-                builder: (context, state) =>
-                    const AdminPlaceholderScreen(title: 'Parties'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.adminItems,
-                builder: (context, state) =>
-                    const AdminPlaceholderScreen(title: 'Items'),
-              ),
-            ],
-          ),
-        ],
+      GoRoute(
+        path: AppRoutes.adminReports,
+        builder: (context, state) => _admin(const ReportsScreenStub()),
+      ),
+      GoRoute(
+        path: AppRoutes.adminSales,
+        builder: (context, state) => _admin(const SalesScreenStub()),
+      ),
+      GoRoute(
+        path: AppRoutes.adminNotifications,
+        builder: (context, state) => _admin(const NotificationsScreenStub()),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

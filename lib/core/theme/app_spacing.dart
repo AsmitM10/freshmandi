@@ -1,5 +1,6 @@
 /// Spacing scale + fixed component dimensions from the Figma spec (sections
-/// N/S/W). Reference these instead of ad-hoc `SizedBox(height: 16)` literals
+/// N/S/W), used by the restaurant-facing app (features/*, shared/widgets).
+/// Reference these instead of ad-hoc `SizedBox(height: 16)` literals
 /// scattered through screens.
 class AppSpacing {
   AppSpacing._();
@@ -35,4 +36,32 @@ class AppSpacing {
   // Purchase summary card (Home screen).
   static const double purchaseCardHeight = 176;
   static const double purchaseCardReferenceWidth = 343;
+
+  // =======================================================================
+  // Business Console (admin app, lib/screens/*) 8px spacing system —
+  // ported 1:1 from its `--sp-*` styles.css tokens. Kept as a separate
+  // section since none of these names collide with the scale above.
+  // =======================================================================
+  static const s1 = 4.0;
+  static const s2 = 8.0;
+  static const s3 = 12.0;
+  static const s4 = 16.0;
+  static const s5 = 20.0;
+  static const s6 = 24.0;
+  static const s7 = 32.0;
+  static const s8 = 40.0;
+  static const s9 = 48.0;
+  static const s10 = 64.0;
+}
+
+/// Corner radii for the Business Console — ported from `--r-*` in its
+/// approved styles.css. The restaurant-facing app hardcodes its own radii
+/// inline per-widget rather than through a shared scale.
+class AppRadius {
+  AppRadius._();
+
+  static const sm = 8.0;
+  static const md = 12.0;
+  static const lg = 16.0;
+  static const full = 999.0;
 }
