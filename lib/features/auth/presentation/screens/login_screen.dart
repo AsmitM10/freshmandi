@@ -57,6 +57,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   /// sent to Supabase as a real phone number. See AppConfig.adminPhoneDigits.
   bool get _isAdminPhone => _phoneController.text.trim() == AppConfig.adminPhoneDigits;
 
+  /// Same trigger mechanism as [_isAdminPhone], for the dev/test
+  /// restaurant account. See AppConfig.testRestaurantPhoneDigits.
+  bool get _isTestRestaurantPhone => _phoneController.text.trim() == AppConfig.testRestaurantPhoneDigits;
+
   Future<void> _sendOtp() async {
     if (_isSendingOtp || _resendCooldown > 0) return;
     final phoneError = Validators.phoneDigits(_phoneController.text);
@@ -65,9 +69,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    if (_isAdminPhone) {
+    if (_isAdminPhone || _isTestRestaurantPhone) {
       // No real phone number to send an SMS to — just reveal the code
-      // boxes, which double as PIN entry for the admin sign-in path below.
+      // boxes, which double as PIN entry for the admin/test sign-in paths
+      // below.
       setState(() {
         _isOtpSent = true;
         _otpCode = '';
@@ -163,6 +168,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
+    if (_isTestRestaurantPhone) {
+      try {
+        await ref.read(authRepositoryProvider).signInTestRestaurant(_otpCode);
+        await _completeRestaurantLogin();
+      } catch (error) {
+        if (mounted) {
+          setState(() => _otpError = mapErrorToAppException(error).message);
+        }
+      } finally {
+        if (mounted) setState(() => _isVerifying = false);
+      }
+      return;
+    }
+
     // ignore: avoid_print
     print('[LOGIN] verifying otp for $_e164Phone...');
     try {
@@ -171,7 +190,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .verifyPhoneOtp(e164Phone: _e164Phone, otp: _otpCode);
       // ignore: avoid_print
       print('[LOGIN] otp verified, session=${ref.read(supabaseClientProvider).auth.currentSession != null}');
+      await _completeRestaurantLogin();
+    } catch (error, stack) {
+      // ignore: avoid_print
+      print('[LOGIN] error: $error\n$stack');
+      if (mounted) {
+        showAppSnackBar(context, mapErrorToAppException(error).message);
+      }
+    } finally {
+      if (mounted) setState(() => _isVerifying = false);
+    }
+  }
 
+  /// Shared by the real-OTP and dev/test-restaurant sign-in paths — once
+  /// Supabase Auth has a session, both need the same "load the restaurant
+  /// row, bail out cleanly if there isn't one, otherwise go to whatever
+  /// its account_status points at" logic.
+  Future<void> _completeRestaurantLogin() async {
+    try {
       // Calling the repository directly here rather than awaiting
       // currentRestaurantProvider.future — that Future was observed to
       // never resolve after a fresh ref.invalidate() immediately followed
@@ -211,9 +247,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         showAppSnackBar(context, mapErrorToAppException(error).message);
       }
-    } finally {
-      if (mounted) setState(() => _isVerifying = false);
     }
+    // _isVerifying is reset by whichever caller invoked this (both the
+    // real-OTP and dev/test-restaurant paths already do so in their own
+    // `finally`), not here — this method is shared by both.
   }
 
   @override

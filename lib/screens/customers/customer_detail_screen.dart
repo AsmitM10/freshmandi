@@ -97,7 +97,12 @@ class CustomerDetailScreen extends ConsumerWidget {
                       children: [
                         for (final order in orders)
                           ListTile(
-                            title: Text(order.id, style: const TextStyle(fontWeight: FontWeight.w700)),
+                            title: Text(
+                              'Order ${order.orderNumber}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
                             subtitle: Text(formatDate(order.placed)),
                             trailing: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,

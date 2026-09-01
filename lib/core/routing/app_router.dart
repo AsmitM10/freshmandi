@@ -28,6 +28,7 @@ import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../screens/customers/customer_detail_screen.dart';
 import '../../screens/customers/customers_list_screen.dart';
 import '../../screens/dashboard/dashboard_screen.dart';
+import '../../screens/orders/add_sale_screen.dart';
 import '../../screens/items/items_screen.dart';
 import '../../screens/notifications_screen_stub.dart';
 import '../../screens/orders/order_detail_screen.dart' as admin;
@@ -224,6 +225,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '${AppRoutes.adminOrders}/:id',
         builder: (context, state) => _admin(
           admin.OrderDetailScreen(orderId: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminAddSale,
+        builder: (context, state) => _admin(
+          AddSaleScreen(orderId: state.extra is String ? state.extra as String : null),
         ),
       ),
       GoRoute(

@@ -10,9 +10,22 @@ import '../../models/product.dart';
 /// which joins both plus the admin `categories` table — see
 /// supabase/migrations/20260830000001_business_console_integration.sql.
 class ItemsRepository {
+  static const _imagesBucket = 'item-images';
+
+  /// `items.image_url` (surfaced through admin_items_console) stores a
+  /// storage path (e.g. 'fruits/apple.png'), not a ready-to-use URL — same
+  /// resolution the restaurant-facing catalog does in
+  /// features/items/data/items_repository.dart.
+  String? _resolveImageUrl(String? path) {
+    if (path == null || path.trim().isEmpty) return null;
+    return supabase.storage.from(_imagesBucket).getPublicUrl(path);
+  }
+
   Future<List<Product>> fetchAll() async {
     final rows = await supabase.from('admin_items_console').select().order('name');
-    return (rows as List).map((r) => Product.fromJson(r as Map<String, dynamic>)).toList();
+    return (rows as List)
+        .map((r) => Product.fromJson(r as Map<String, dynamic>, resolveImageUrl: _resolveImageUrl))
+        .toList();
   }
 
   Future<Product> create({
@@ -44,7 +57,7 @@ class ItemsRepository {
     });
 
     final row = await supabase.from('admin_items_console').select().eq('id', itemId).single();
-    return Product.fromJson(row);
+    return Product.fromJson(row, resolveImageUrl: _resolveImageUrl);
   }
 
   Future<Product> update(Product product) async {
@@ -67,7 +80,7 @@ class ItemsRepository {
     });
 
     final row = await supabase.from('admin_items_console').select().eq('id', product.id).single();
-    return Product.fromJson(row);
+    return Product.fromJson(row, resolveImageUrl: _resolveImageUrl);
   }
 
   Future<void> delete(String id) async {

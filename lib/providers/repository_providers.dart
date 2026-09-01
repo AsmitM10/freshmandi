@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/repositories/add_sale_repository.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/categories_repository.dart';
 import '../data/repositories/customers_repository.dart';
@@ -17,3 +18,4 @@ final ordersRepositoryProvider = Provider((ref) => OrdersRepository());
 final transactionsRepositoryProvider = Provider((ref) => TransactionsRepository());
 final dashboardRepositoryProvider = Provider((ref) => DashboardRepository());
 final settingsRepositoryProvider = Provider((ref) => SettingsRepository());
+final addSaleRepositoryProvider = Provider((ref) => AddSaleRepository());

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/order.dart';
 import '../../providers/orders_providers.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/filter_pill.dart';
 import '../../widgets/status_chip.dart';
 
 class OrdersListScreen extends ConsumerWidget {
@@ -19,6 +21,14 @@ class OrdersListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Orders')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          await context.push(AppRoutes.adminAddSale);
+          ref.invalidate(ordersListProvider);
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Add Sale'),
+      ),
       body: Column(
         children: [
           Padding(
@@ -32,24 +42,24 @@ class OrdersListScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.s3),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Row(
+                  child: Wrap(
+                    spacing: AppSpacing.s2,
+                    runSpacing: AppSpacing.s2,
                     children: [
-                      ChoiceChip(
-                        label: const Text('All'),
+                      FilterPill(
+                        label: 'All',
                         selected: statusFilter == null,
-                        onSelected: (_) => ref.read(ordersStatusFilterProvider.notifier).state = null,
+                        onSelected: () => ref.read(ordersStatusFilterProvider.notifier).state = null,
                       ),
-                      const SizedBox(width: AppSpacing.s2),
-                      ChoiceChip(
-                        label: const Text('Pending'),
+                      FilterPill(
+                        label: 'Pending',
                         selected: statusFilter == OrderStatus.pending,
-                        onSelected: (_) => ref.read(ordersStatusFilterProvider.notifier).state = OrderStatus.pending,
+                        onSelected: () => ref.read(ordersStatusFilterProvider.notifier).state = OrderStatus.pending,
                       ),
-                      const SizedBox(width: AppSpacing.s2),
-                      ChoiceChip(
-                        label: const Text('Confirmed'),
+                      FilterPill(
+                        label: 'Confirmed',
                         selected: statusFilter == OrderStatus.confirmed,
-                        onSelected: (_) => ref.read(ordersStatusFilterProvider.notifier).state = OrderStatus.confirmed,
+                        onSelected: () => ref.read(ordersStatusFilterProvider.notifier).state = OrderStatus.confirmed,
                       ),
                     ],
                   ),
@@ -67,15 +77,23 @@ class OrdersListScreen extends ConsumerWidget {
                   return const EmptyStateView(icon: Icons.receipt_long_outlined, title: 'No orders found', body: 'Try a different search or filter.');
                 }
                 return RefreshIndicator(
-                  onRefresh: () async => ref.invalidate(ordersListProvider),
+                  onRefresh: () async {
+                    ref.invalidate(ordersListProvider);
+                    await ref.read(ordersListProvider.future);
+                  },
                   child: ListView.separated(
                     itemCount: orders.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final order = orders[index];
                       return ListTile(
-                        title: Text(order.id, style: const TextStyle(fontWeight: FontWeight.w700)),
-                        subtitle: Text('${order.customerName} · ${order.items.length} items · ${timeAgo(order.placed)}'),
+                        title: Text(
+                          'Order ${order.orderNumber}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text('${order.customerName} · ${order.displayItemCount} items · ${timeAgo(order.placed)}'),
                         trailing: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,

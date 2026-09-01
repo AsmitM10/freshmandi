@@ -40,7 +40,15 @@ class BottomNavBar extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            top: 24,
+            // 34, not the original 24: trims the visible white bar by the
+            // same 10px admin's AppShell bar was reduced by (103 -> 93),
+            // without touching AppSpacing.bottomNavHeight itself — that
+            // constant also sizes bottom scroll-padding on ~11 other
+            // screens (Shop, History, Settings, Order Detail, ...), so
+            // shrinking it directly would ripple into all of them. The
+            // extra 10px just becomes more clearance above the bar, where
+            // the floating voice button already sits.
+            top: 34,
             child: Container(
               decoration: BoxDecoration(
                 color: AppColors.surfaceWhite,
@@ -49,6 +57,11 @@ class BottomNavBar extends StatelessWidget {
               child: SafeArea(
                 top: false,
                 child: Row(
+                  // Top-aligned rather than centered — same structure as
+                  // the admin AppShell's nav bar (widgets/app_shell.dart):
+                  // icons sit close to the top edge (each _NavItem carries
+                  // its own top padding) instead of floating mid-height.
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: _NavItem(
@@ -127,23 +140,27 @@ class _NavItem extends StatelessWidget {
       button: true,
       child: InkWell(
         onTap: onTap,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(svgAsset, width: 24, height: 24),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              // Poppins has no Devanagari glyphs — falling back to Hind
-              // (a Devanagari+Latin Google Font) covers Hindi labels
-              // without changing how the English labels render at all.
-              style: AppTextStyles.navLabel.copyWith(
-                color: color,
-                fontFamilyFallback: AppTextStyles.devanagariFallback,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SvgPicture.asset(svgAsset, width: 24, height: 24),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                // Poppins has no Devanagari glyphs — falling back to Hind
+                // (a Devanagari+Latin Google Font) covers Hindi labels
+                // without changing how the English labels render at all.
+                style: AppTextStyles.navLabel.copyWith(
+                  color: color,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  fontFamilyFallback: AppTextStyles.devanagariFallback,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

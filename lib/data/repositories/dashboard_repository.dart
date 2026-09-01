@@ -8,12 +8,18 @@ class DashboardSnapshot {
   final int confirmedOrders;
   final double totalReceivable;
 
+  /// Lifetime sum of every invoice ever generated (paid + pending) — "how
+  /// much has this account sold in total", as opposed to [totalReceivable]
+  /// which is only the still-unpaid subset of that.
+  final double totalSale;
+
   const DashboardSnapshot({
     required this.salesToday,
     required this.moneyInToday,
     required this.pendingOrders,
     required this.confirmedOrders,
     required this.totalReceivable,
+    required this.totalSale,
   });
 }
 
@@ -25,11 +31,10 @@ class DashboardSnapshot {
 /// `admin_orders_console` and `admin_revenue_summary` are views over the
 /// real orders/invoices tables (see
 /// supabase/migrations/20260830000001_business_console_integration.sql and
-/// 20260826000001_admin_dashboard.sql) — `totalReceivable` in particular
-/// comes from `admin_revenue_summary`, a real sum over unpaid invoices,
+/// 20260826000001_admin_dashboard.sql) — `totalReceivable`/`totalSale` in
+/// particular come from `admin_revenue_summary`, real sums over invoices,
 /// rather than the restaurants.outstanding_balance ledger column (which
-/// only reflects manual Transactions entries — see
-/// TransactionsRepository).
+/// only reflects manual Transactions entries — see TransactionsRepository).
 class DashboardRepository {
   Future<DashboardSnapshot> fetch() async {
     final now = DateTime.now();
@@ -48,8 +53,9 @@ class DashboardRepository {
     final moneyInToday = (todayTxnRows as List)
         .fold<double>(0, (sum, r) => sum + ((r as Map<String, dynamic>)['amount'] as num).toDouble());
 
-    final receivableRow = await supabase.from('admin_revenue_summary').select('total_receivable').single();
-    final totalReceivable = (receivableRow['total_receivable'] as num).toDouble();
+    final revenueRow = await supabase.from('admin_revenue_summary').select('total_receivable, total_sale').single();
+    final totalReceivable = (revenueRow['total_receivable'] as num).toDouble();
+    final totalSale = (revenueRow['total_sale'] as num).toDouble();
 
     return DashboardSnapshot(
       salesToday: salesToday,
@@ -57,6 +63,7 @@ class DashboardRepository {
       pendingOrders: pendingOrders,
       confirmedOrders: confirmedOrders,
       totalReceivable: totalReceivable,
+      totalSale: totalSale,
     );
   }
 }

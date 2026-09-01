@@ -16,9 +16,13 @@ class CategoriesRepository {
   /// Kept as a fixed, hard-coded list (not derived from the `categories`
   /// table) per the explicit client correction: the filter dropdown must
   /// show exactly these three, regardless of what other categories exist.
+  /// Matched exactly against `items.category`'s real values (confirmed
+  /// against the live table — 268 rows, all one of these three strings),
+  /// not a guessed/short form — filteredItemsProvider compares by exact
+  /// equality, so anything else here silently matches nothing.
   static const List<String> approvedFilterCategories = [
     'Fruits',
-    'Vegetables',
+    'Indian Vegetables',
     'Exotic Vegetables',
   ];
 

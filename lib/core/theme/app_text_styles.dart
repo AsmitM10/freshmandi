@@ -121,7 +121,7 @@ class AppTextStyles {
   /// Bottom navigation tab labels.
   static const TextStyle navLabel = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w500,
     color: AppColors.placeholder,
   );

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +10,7 @@ import '../../models/product.dart';
 import '../../providers/items_providers.dart';
 import '../../providers/repository_providers.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/filter_pill.dart';
 import 'widgets/add_category_sheet.dart';
 import 'widgets/add_item_sheet.dart';
 
@@ -63,10 +65,10 @@ class ItemsScreen extends ConsumerWidget {
                         for (final option in ['All', ...CategoriesRepository.approvedFilterCategories])
                           Padding(
                             padding: const EdgeInsets.only(right: AppSpacing.s2),
-                            child: ChoiceChip(
-                              label: Text(option == 'All' ? 'All categories' : option),
+                            child: FilterPill(
+                              label: option == 'All' ? 'All categories' : option,
                               selected: selectedCategory == option,
-                              onSelected: (_) => ref.read(itemsCategoryFilterProvider.notifier).state = option,
+                              onSelected: () => ref.read(itemsCategoryFilterProvider.notifier).state = option,
                             ),
                           ),
                       ],
@@ -140,7 +142,7 @@ class _ItemRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
       onTap: () => showItemFormSheet(context, ref, editing: item),
-      leading: CircleAvatar(backgroundColor: AppColors.brand50, child: Text(item.emoji)),
+      leading: _ItemAvatar(item: item),
       title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w700)),
       subtitle: Text(item.categoryName),
       trailing: Row(
@@ -159,4 +161,39 @@ class _ItemRow extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The real catalog photo (`items.image_url`, same bucket the restaurant
+/// app's ItemCard reads from) when one is set, falling back to the
+/// category emoji placeholder otherwise or on a failed load.
+class _ItemAvatar extends StatelessWidget {
+  const _ItemAvatar({required this.item});
+
+  final Product item;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = item.imageUrl;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: url == null || url.isEmpty
+            ? _fallback()
+            : CachedNetworkImage(
+                imageUrl: url,
+                fit: BoxFit.cover,
+                placeholder: (context, _) => _fallback(),
+                errorWidget: (context, _, _) => _fallback(),
+              ),
+      ),
+    );
+  }
+
+  Widget _fallback() => Container(
+        color: AppColors.brand50,
+        alignment: Alignment.center,
+        child: Text(item.emoji),
+      );
 }

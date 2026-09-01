@@ -9,6 +9,16 @@ import '../../models/order_item.dart';
 /// which is itself built on `admin_order_overview`
 /// (20260826000001_admin_dashboard.sql).
 class OrdersRepository {
+  static const _imagesBucket = 'item-images';
+
+  /// `items.image_url` (surfaced through admin_items_console) stores a
+  /// storage path, not a ready-to-use URL — same resolution
+  /// ItemsRepository uses for the Items screen.
+  String? _resolveImageUrl(String? path) {
+    if (path == null || path.trim().isEmpty) return null;
+    return supabase.storage.from(_imagesBucket).getPublicUrl(path);
+  }
+
   Future<List<Order>> fetchAll({OrderStatus? status, String? search}) async {
     var query = supabase.from('admin_orders_console').select();
     if (status == OrderStatus.confirmed) {
@@ -32,15 +42,55 @@ class OrdersRepository {
         .from('order_items')
         .select('item_id, item_name, quantity, unit, rate')
         .eq('order_id', id);
-    final items = (itemRows as List).map((r) {
-      final map = r as Map<String, dynamic>;
+
+    // A restaurant-placed order's line items never carry a rate (only the
+    // admin_confirm_order RPC sets one, at confirm time) — before that,
+    // fall back to the item's current catalog price (item_admin_pricing)
+    // so the admin can actually review what an order will cost before
+    // deciding to accept it, not just quantities.
+    final itemIds = (itemRows as List)
+        .map((r) => (r as Map<String, dynamic>)['item_id'] as String?)
+        .whereType<String>()
+        .toSet()
+        .toList();
+    final catalogPrices = <String, double>{};
+    // emoji/image_url so each line item shows its real catalog photo
+    // (falling back to its real category emoji) instead of the generic
+    // 🥬 placeholder — order_items itself carries neither column.
+    final catalogMeta = <String, Map<String, dynamic>>{};
+    if (itemIds.isNotEmpty) {
+      final pricingRows = await supabase
+          .from('item_admin_pricing')
+          .select('item_id, price')
+          .inFilter('item_id', itemIds);
+      for (final row in pricingRows as List) {
+        final map = row as Map<String, dynamic>;
+        catalogPrices[map['item_id'] as String] = (map['price'] as num).toDouble();
+      }
+
+      final catalogRows = await supabase
+          .from('admin_items_console')
+          .select('id, emoji, image_url')
+          .inFilter('id', itemIds);
+      for (final row in catalogRows as List) {
+        final map = row as Map<String, dynamic>;
+        catalogMeta[map['id'] as String] = map;
+      }
+    }
+
+    final items = itemRows.map((map) {
+      final itemId = map['item_id'] as String?;
+      final rate = (map['rate'] as num?)?.toDouble() ?? catalogPrices[itemId] ?? 0;
+      final meta = catalogMeta[itemId];
       return OrderItem.fromJson({
-        'product_id': map['item_id'] ?? '',
+        'product_id': itemId ?? '',
         'name': map['item_name'],
+        'emoji': meta?['emoji'],
+        'image_url': meta?['image_url'],
         'unit': map['unit'],
         'qty': map['quantity'],
-        'rate': map['rate'] ?? 0,
-      });
+        'rate': rate,
+      }, resolveImageUrl: _resolveImageUrl);
     }).toList();
     return Order.fromJson(orderRow, items: items);
   }

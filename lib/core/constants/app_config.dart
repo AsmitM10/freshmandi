@@ -42,4 +42,16 @@ class AppConfig {
   /// PIN checked via real Supabase password auth instead.
   static const String adminPhoneDigits = '9999999999';
   static const String adminEmail = 'admin@freshmandi.app';
+
+  /// Dev/test restaurant login — same trick as [adminPhoneDigits]/
+  /// [adminEmail]: [testRestaurantPhoneDigits] is a client-side trigger
+  /// only (never sent to Supabase as a real phone number), and
+  /// [testRestaurantEmail] is the email of an existing, already-approved
+  /// restaurant account that also has a password set. Exists so this
+  /// number can be used for development/testing without depending on a
+  /// working SMS provider (Twilio trial accounts refuse to deliver to
+  /// unverified numbers) — the "OTP" boxes double as a 6-digit PIN
+  /// checked via real Supabase password auth, exactly like admin sign-in.
+  static const String testRestaurantPhoneDigits = '1234567890';
+  static const String testRestaurantEmail = 'test-restaurant@freshmandi.app';
 }

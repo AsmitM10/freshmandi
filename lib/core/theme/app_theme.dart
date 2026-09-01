@@ -43,10 +43,16 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.bg,
+      // Brand rule: the exact same two colors the restaurant-facing app
+      // uses (AppColors.primary #4A8754 green, AppColors.secondary
+      // #355C7D blue) — green is for cards/icons only, blue is the only
+      // CTA/nav color. Deliberately using those tokens directly here
+      // rather than this palette's own navy600/brand600 (close but not
+      // identical hex values) so both apps read as the same brand.
       colorScheme: const ColorScheme.light(
-        primary: AppColors.navy600,
+        primary: AppColors.secondary,
         onPrimary: AppColors.white,
-        secondary: AppColors.brand600,
+        secondary: AppColors.primary,
         onSecondary: AppColors.white,
         surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
@@ -56,7 +62,12 @@ class AppTheme {
       ),
     );
 
-    final displayFont = GoogleFonts.manropeTextTheme();
+    // Headings (display/headline/title) are Urbanist throughout the admin
+    // app — same family the hand-built dashboard heading text
+    // (GoogleFonts.urbanist(...) literals) already uses, so the theme's
+    // own title styles (AppBar titles, section headers like "Recent
+    // orders") stay consistent with those.
+    final displayFont = GoogleFonts.urbanistTextTheme();
     final bodyFont = GoogleFonts.publicSansTextTheme();
 
     final textTheme = bodyFont.copyWith(
@@ -77,31 +88,57 @@ class AppTheme {
     return base.copyWith(
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.surface,
+        // Matches scaffoldBackgroundColor (AppColors.bg), not
+        // AppColors.surface (white) — every admin screen is a plain
+        // Scaffold(appBar: AppBar(...)), so a white app bar on top of the
+        // cream body reads as a separate white block instead of one
+        // continuous background.
+        backgroundColor: AppColors.bg,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: textTheme.titleLarge,
       ),
+      // Card accent is green (AppColors.primary), per the brand rule above.
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          side: const BorderSide(color: AppColors.border),
+          side: BorderSide(color: AppColors.primary.withValues(alpha: 0.28)),
         ),
         margin: EdgeInsets.zero,
       ),
       dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1, space: 1),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.navy600,
+          backgroundColor: AppColors.secondary,
           foregroundColor: AppColors.white,
           disabledBackgroundColor: AppColors.ink200,
           disabledForegroundColor: AppColors.ink400,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s5, vertical: AppSpacing.s3),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+          textStyle: textTheme.labelLarge,
+        ),
+      ),
+      // Without an explicit theme, FilledButton/FilledButton.tonal fall
+      // back to Material 3's raw defaults — a full stadium pill with
+      // ColorScheme-derived fill and generous internal padding, which is
+      // what made two side-by-side FilledButton.icon actions wrap their
+      // label text. Match ElevatedButton's shape/padding instead so every
+      // button style in this app reads as one consistent system.
+      // Design rule: green (brand*) is for cards/icons only, blue (navy*)
+      // is the only CTA color — matches ElevatedButton's fill below.
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.secondary,
+          foregroundColor: AppColors.white,
+          disabledBackgroundColor: AppColors.ink200,
+          disabledForegroundColor: AppColors.ink400,
+          minimumSize: const Size(0, 48),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s5, vertical: AppSpacing.s3),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
           textStyle: textTheme.labelLarge,
         ),
       ),
@@ -117,7 +154,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.navy600,
+          foregroundColor: AppColors.secondary,
           textStyle: textTheme.labelLarge,
         ),
       ),
@@ -135,7 +172,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.sm),
-          borderSide: const BorderSide(color: AppColors.navy600, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
         ),
         hintStyle: textTheme.bodyMedium,
       ),
@@ -146,21 +183,23 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
         side: BorderSide.none,
       ),
+      // Nav bar selected state is blue (AppColors.secondary), per the
+      // brand rule above — not green.
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.brand100,
+        indicatorColor: AppColors.secondary.withValues(alpha: 0.14),
         surfaceTintColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
             fontSize: 11,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? AppColors.brand700 : AppColors.textMuted,
+            color: selected ? AppColors.secondary : AppColors.textMuted,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return IconThemeData(color: selected ? AppColors.brand700 : AppColors.textMuted);
+          return IconThemeData(color: selected ? AppColors.secondary : AppColors.textMuted);
         }),
       ),
       snackBarTheme: SnackBarThemeData(

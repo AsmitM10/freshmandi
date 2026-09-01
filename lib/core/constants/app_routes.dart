@@ -62,6 +62,7 @@ class AppRoutes {
   static const String adminReports = '/admin/reports';
   static const String adminSales = '/admin/sales';
   static const String adminNotifications = '/admin/notifications';
+  static const String adminAddSale = '/admin/add-sale';
 
   static const Set<String> statusGatedRoutes = {
     pendingApproval,

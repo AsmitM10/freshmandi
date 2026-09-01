@@ -61,6 +61,21 @@ class AuthRepository {
     }
   }
 
+  /// Signs in as the dev/test restaurant account (AppConfig.
+  /// testRestaurantPhoneDigits) via Supabase email+password auth — same
+  /// mechanism and same reason as [signInAdmin]: bypasses the phone/SMS
+  /// pipeline entirely for a designated test number.
+  Future<void> signInTestRestaurant(String pin) async {
+    try {
+      await _client.auth.signInWithPassword(
+        email: AppConfig.testRestaurantEmail,
+        password: pin,
+      );
+    } catch (error) {
+      throw mapErrorToAppException(error);
+    }
+  }
+
   /// Call once, immediately after a successful admin sign-in. Links the
   /// seeded admin row to the now-real signed-in user (first login only).
   Future<bool> claimAdmin() async {

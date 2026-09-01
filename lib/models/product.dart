@@ -12,6 +12,7 @@ class Product {
   final String categoryId;
   final String categoryName;
   final String emoji;
+  final String? imageUrl;
   final String unit;
   final double price;
   final double mrp;
@@ -25,6 +26,7 @@ class Product {
     required this.categoryId,
     required this.categoryName,
     required this.emoji,
+    this.imageUrl,
     required this.unit,
     required this.price,
     required this.mrp,
@@ -32,7 +34,7 @@ class Product {
     this.stock,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json, {String? categoryName}) => Product(
+  factory Product.fromJson(Map<String, dynamic> json, {String? categoryName, String? Function(String? path)? resolveImageUrl}) => Product(
         id: json['id'] as String,
         sku: (json['sku'] as String?) ?? '',
         name: json['name'] as String,
@@ -45,6 +47,7 @@ class Product {
         categoryId: json['category_id'] as String? ?? '',
         categoryName: categoryName ?? (json['category_name'] as String? ?? ''),
         emoji: (json['emoji'] as String?) ?? '🥬',
+        imageUrl: resolveImageUrl != null ? resolveImageUrl(json['image_url'] as String?) : json['image_url'] as String?,
         unit: (json['unit'] as String?) ?? 'kg',
         price: (json['price'] as num).toDouble(),
         mrp: (json['mrp'] as num?)?.toDouble() ?? (json['price'] as num).toDouble(),
@@ -80,6 +83,7 @@ class Product {
         categoryId: categoryId ?? this.categoryId,
         categoryName: categoryName ?? this.categoryName,
         emoji: emoji,
+        imageUrl: imageUrl,
         unit: unit ?? this.unit,
         price: price ?? this.price,
         mrp: mrp ?? this.mrp,

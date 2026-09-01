@@ -2,6 +2,7 @@ class OrderItem {
   final String productId;
   final String name;
   final String emoji;
+  final String? imageUrl;
   final String unit;
   final int qty;
   final double rate;
@@ -10,6 +11,7 @@ class OrderItem {
     required this.productId,
     required this.name,
     required this.emoji,
+    this.imageUrl,
     required this.unit,
     required this.qty,
     required this.rate,
@@ -17,10 +19,11 @@ class OrderItem {
 
   double get amount => qty * rate;
 
-  factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
+  factory OrderItem.fromJson(Map<String, dynamic> json, {String? Function(String? path)? resolveImageUrl}) => OrderItem(
         productId: json['product_id'] as String,
         name: json['name'] as String,
         emoji: (json['emoji'] as String?) ?? '🥬',
+        imageUrl: resolveImageUrl != null ? resolveImageUrl(json['image_url'] as String?) : json['image_url'] as String?,
         unit: (json['unit'] as String?) ?? 'kg',
         qty: (json['qty'] as num).toInt(),
         rate: (json['rate'] as num).toDouble(),
