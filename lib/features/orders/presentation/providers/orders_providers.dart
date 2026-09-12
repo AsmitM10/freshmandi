@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/app_exception.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../notifications/notification_trigger.dart';
 import '../../../items/domain/catalog_item.dart';
 import '../../../items/presentation/providers/items_providers.dart';
 import '../../data/orders_repository.dart';
@@ -61,6 +64,10 @@ Future<String> submitCartOrder(WidgetRef ref) async {
       .read(ordersRepositoryProvider)
       .placeOrder(restaurantId: restaurant.id, lines: lines);
   ref.read(cartProvider.notifier).clear();
+  // Fire-and-forget: a slow or failing push (e.g. the Edge Function being
+  // briefly undeployed) must never hold up the success screen the order
+  // itself already earned.
+  unawaited(triggerNotification(ref.read(supabaseClientProvider), type: 'order_request', orderId: orderId));
   return orderId;
 }
 

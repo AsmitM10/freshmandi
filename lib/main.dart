@@ -1,19 +1,25 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'core/constants/env_keys.dart';
 import 'core/localization/app_language.dart';
 import 'core/localization/language_provider.dart';
 import 'core/routing/app_router.dart';
+import 'core/routing/global_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/root_messenger.dart';
 import 'core/utils/secure_session_storage.dart';
+import 'features/notifications/push_notification_service.dart';
 import 'l10n/gen/app_localizations.dart';
+import 'firebase_options.dart';
 
 void main() {
   // TEMPORARY debug instrumentation — remove once the "not navigating to
@@ -33,6 +39,17 @@ void main() {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+
+      // Only Android/iOS have a Firebase app registered (see
+      // firebase_options.dart) — push notifications aren't a target on
+      // web/Windows/desktop, and DefaultFirebaseOptions.currentPlatform
+      // throws for those, which previously took the whole app down before
+      // runApp() ever ran. Skipping Firebase entirely there instead.
+      final supportsFirebase =
+          !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+      if (supportsFirebase) {
+        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      }
 
       FlutterError.onError = (FlutterErrorDetails details) {
         // ignore: avoid_print
@@ -59,6 +76,7 @@ void main() {
       );
 
       runApp(const ProviderScope(child: FreshMandiApp()));
+      unawaited(setupNotificationTapHandling());
     },
     (error, stack) {
       // ignore: avoid_print
@@ -75,11 +93,13 @@ class FreshMandiApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
+    globalRouter = router;
     final language = ref.watch(languageProvider);
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'FreshMandi',
       theme: AppTheme.theme,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       routerConfig: router,
       locale: language.locale,
       supportedLocales: AppLocalizations.supportedLocales,

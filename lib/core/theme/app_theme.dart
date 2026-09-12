@@ -76,7 +76,11 @@ class AppTheme {
       headlineLarge: displayFont.headlineLarge?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w800),
       headlineMedium: displayFont.headlineMedium?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w800),
       headlineSmall: displayFont.headlineSmall?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
-      titleLarge: displayFont.titleLarge?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
+      // Pinned to 20 to match the Dashboard's own hand-styled headings
+      // ("Good evening", "Recent orders", "Overview") — this is what every
+      // admin screen's AppBar title (Orders, Items, Parties, Money, ...)
+      // renders at via appBarTheme.titleTextStyle below.
+      titleLarge: displayFont.titleLarge?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 20),
       titleMedium: displayFont.titleMedium?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
       titleSmall: displayFont.titleSmall?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
       bodyLarge: bodyFont.bodyLarge?.copyWith(color: AppColors.textPrimary),

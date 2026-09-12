@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import '../../core/supabase/supabase_client.dart';
+import '../../features/notifications/notification_trigger.dart';
 import '../../models/order.dart';
 import '../../models/order_item.dart';
 
@@ -104,6 +107,9 @@ class OrdersRepository {
   /// total can be produced.
   Future<void> confirm(String id) async {
     await supabase.rpc('admin_confirm_order', params: {'p_order_id': id});
+    // Fire-and-forget — a slow/failing push must never hold up the admin's
+    // confirm action, which has already succeeded by this point.
+    unawaited(triggerNotification(supabase, type: 'order_accepted', orderId: id));
   }
 
   Future<List<Order>> fetchByCustomer(String customerId) async {

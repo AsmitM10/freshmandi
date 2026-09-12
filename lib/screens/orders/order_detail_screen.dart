@@ -101,6 +101,10 @@ class OrderDetailScreen extends ConsumerWidget {
                     icon: const Icon(Icons.check),
                     label: const Text('Accept order'),
                     onPressed: () async {
+                      // Notification (push + in-app row) is triggered
+                      // inside confirm() itself now — see
+                      // OrdersRepository.confirm() and the
+                      // send-notification Edge Function.
                       await ref.read(ordersRepositoryProvider).confirm(order.id);
                       ref.invalidate(orderDetailProvider(orderId));
                       ref.invalidate(ordersListProvider);

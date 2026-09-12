@@ -57,6 +57,8 @@ dependencies:
   path_provider: ^2.1.5
   printing: ^5.13.4
   screenshot: ^3.0.0
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
 
 # NOTE: file_picker's Windows implementation is pinned to win32 ^5.9.0 while
 # flutter_secure_storage's Windows implementation requires win32 ^6.0.1. This app

@@ -5,7 +5,15 @@
 // compared before anything is written. This is the only place
 // invoices.payment_status ever changes to 'paid'.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+
+// Inlined rather than imported from ../_shared/cors.ts — deploying via the
+// Supabase Dashboard's single-file editor only bundles this one file, so a
+// relative import reaching outside the function's own folder fails to
+// resolve at deploy time ("Module not found ... _shared/cors.ts").
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -64,6 +72,22 @@ Deno.serve(async (req) => {
     if (updateError) {
       console.error('Failed to mark invoice paid:', updateError);
       return json({ error: 'Could not record payment' }, 500);
+    }
+
+    // Best-effort — the payment itself is already verified and recorded
+    // above regardless of whether this succeeds, so a notification
+    // failure must never surface as if the payment itself failed.
+    // Server-to-server call (service role key as the bearer, since this
+    // isn't a user-initiated request) rather than duplicating
+    // send-notification's threshold/dedup/FCM logic here.
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/send-notification`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'payment', order_id: invoice.order_id }),
+      });
+    } catch (notifyError) {
+      console.error('send-notification call failed:', notifyError);
     }
 
     return json({ success: true });

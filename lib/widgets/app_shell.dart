@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/supabase/supabase_client.dart';
 import '../core/theme/app_colors.dart';
+import '../features/notifications/data/device_token_repository.dart';
+import '../features/notifications/push_notification_service.dart';
 
 /// Bottom navigation shell — Home / Orders / Items / Parties / Money /
 /// More, matching the approved simplified nav (Suppliers, Delivery, Offers,
@@ -11,10 +14,27 @@ import '../core/theme/app_colors.dart';
 /// (assets/icons/nav_admin_*.svg) — each tab has a genuinely different
 /// filled icon for its active state, not a tinted copy of the outline one,
 /// same convention as the restaurant app's own BottomNavBar.
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   final Widget child;
 
   const AppShell({super.key, required this.child});
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  @override
+  void initState() {
+    super.initState();
+    // Only reached once signed in as admin (same as the restaurant app's
+    // MainShellScreen registering its own token) — registers this device
+    // for order_request pushes. No Riverpod needed here: the admin
+    // screens already use the plain `supabase` accessor throughout
+    // (lib/data/repositories/*), so this instantiates the same
+    // service/repository pair the customer app uses via providers.
+    PushNotificationService(DeviceTokenRepository(supabase)).init(isAdmin: true);
+  }
 
   static const _tabs = [
     (route: '/admin/dashboard', icon: 'assets/icons/nav_admin_home.svg', activeIcon: 'assets/icons/nav_admin_home_filled.svg', label: 'Home'),
@@ -99,7 +119,7 @@ class AppShell extends StatelessWidget {
     final isMoreActive = currentIndex < 0;
 
     return Scaffold(
-      body: child,
+      body: widget.child,
       bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.surface,

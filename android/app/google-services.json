@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "223780920045",
+    "project_id": "freshmandi-b584e",
+    "storage_bucket": "freshmandi-b584e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223780920045:android:680ee054f4286806f20ae4",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcAzDAceEqyMuSlrPc06GPo_o6sTKLrHE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

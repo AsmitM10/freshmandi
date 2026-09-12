@@ -47,6 +47,13 @@ class AppRoutes {
   static const String editDetails = '/edit-details';
   static const String contactUs = '/contact-us';
   static const String language = '/settings/language';
+  static const String notifications = '/notifications';
+
+  // Full styled invoice document, shown live on screen (as opposed to
+  // [history]'s own order-detail screen, which shows the app's plain
+  // summary/item cards). Reached from an "order accepted" notification's
+  // View Invoice action. Shell-less, own back button.
+  static const String invoiceView = '/invoice';
 
   // Admin section — the Business Console (lib/screens/*), reached only via
   // the same phone+OTP-styled login screen (the app auto-detects the

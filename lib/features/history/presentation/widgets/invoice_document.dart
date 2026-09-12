@@ -28,6 +28,7 @@ class InvoiceDocument extends StatelessWidget {
     required this.lines,
     required this.restaurant,
     required this.business,
+    this.width,
   });
 
   final OrderHistoryEntry entry;
@@ -35,7 +36,17 @@ class InvoiceDocument extends StatelessWidget {
   final RestaurantAccount restaurant;
   final BusinessSettings business;
 
+  /// Defaults to [_documentWidth] — the fixed width the download/share flow
+  /// (`OrderDetailScreen._handleDownload`) rasterizes at, so exported
+  /// images stay pixel-consistent regardless of the device they were
+  /// generated on. A live on-screen viewer instead passes the actual
+  /// available width so the document fills the phone screen; below
+  /// [_stackBreakpoint] the two-column sections stack vertically instead
+  /// of squeezing into narrow side-by-side columns.
+  final double? width;
+
   static const _documentWidth = 686.0;
+  static const _stackBreakpoint = 420.0;
   static const _brandGreen = Color(0xFF1B5E20);
   static const _lightGreen = Color(0xFFEFF7ED);
   static const _borderGreen = Color(0xFFB7D9BA);
@@ -45,11 +56,13 @@ class InvoiceDocument extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalQuantity = lines.fold<int>(0, (sum, line) => sum + line.quantity);
+    final effectiveWidth = width ?? _documentWidth;
+    final isNarrow = effectiveWidth < _stackBreakpoint;
 
     return Material(
       color: Colors.white,
       child: Container(
-        width: _documentWidth,
+        width: effectiveWidth,
         padding: const EdgeInsets.fromLTRB(28, 28, 28, 28),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -59,20 +72,20 @@ class InvoiceDocument extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _Header(),
+            _Header(isNarrow: isNarrow),
             const SizedBox(height: 16),
             const Divider(color: _borderGreen, height: 1, thickness: 1.5),
             const SizedBox(height: 16),
-            _BusinessAndOrderInfo(business: business, entry: entry),
+            _BusinessAndOrderInfo(business: business, entry: entry, isNarrow: isNarrow),
             const SizedBox(height: 20),
-            _AddressRow(restaurant: restaurant),
+            _AddressRow(restaurant: restaurant, isNarrow: isNarrow),
             const SizedBox(height: 20),
             _ItemTable(lines: lines),
             const SizedBox(height: 20),
-            _TotalsRow(itemCount: lines.length, totalQuantity: totalQuantity, entry: entry),
+            _TotalsRow(itemCount: lines.length, totalQuantity: totalQuantity, entry: entry, isNarrow: isNarrow),
             if (business.upiId != null) ...[
               const SizedBox(height: 20),
-              _PaymentSection(business: business, entry: entry),
+              _PaymentSection(business: business, entry: entry, isNarrow: isNarrow),
             ],
             const SizedBox(height: 20),
             const _Footer(),
@@ -84,11 +97,20 @@ class InvoiceDocument extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header();
+  const _Header({required this.isNarrow});
+
+  final bool isNarrow;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    // At the full document width, 26px fits comfortably next to the badge;
+    // squeezed into a narrow phone width it wrapped mid-word ("Mand" / "i")
+    // and collided with the tagline below it — shrinking the title and
+    // pinning it to one line (ellipsis as a last resort) keeps this row
+    // exactly one line tall regardless of how little space is left.
+    final titleFontSize = isNarrow ? 18.0 : 26.0;
+
+    final brand = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Image.asset('assets/images/freshmandi_logo.png', width: 44, height: 44, fit: BoxFit.contain),
@@ -105,7 +127,7 @@ class _Header extends StatelessWidget {
                       text: 'Fresh',
                       style: TextStyle(
                         color: const Color(0xFF242424),
-                        fontSize: 26,
+                        fontSize: titleFontSize,
                         fontStyle: FontStyle.italic,
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w700,
@@ -115,7 +137,7 @@ class _Header extends StatelessWidget {
                       text: 'Mandi',
                       style: TextStyle(
                         color: InvoiceDocument._brandGreen,
-                        fontSize: 26,
+                        fontSize: titleFontSize,
                         fontStyle: FontStyle.italic,
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w700,
@@ -123,99 +145,120 @@ class _Header extends StatelessWidget {
                     ),
                   ],
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const Text(
                 'Fresh Produce. Trusted Supply.',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: InvoiceDocument._muted, fontSize: 11, fontFamily: 'Poppins'),
               ),
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: InvoiceDocument._brandGreen,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: const Text(
-            'INVOICE',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1,
-            ),
-          ),
+      ],
+    );
+
+    final badge = Container(
+      padding: EdgeInsets.symmetric(horizontal: isNarrow ? 10 : 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: InvoiceDocument._brandGreen,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        'INVOICE',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: isNarrow ? 12 : 15,
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.w700,
+          letterSpacing: isNarrow ? 0.5 : 1,
         ),
+      ),
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: brand),
+        const SizedBox(width: 8),
+        badge,
       ],
     );
   }
 }
 
 class _BusinessAndOrderInfo extends StatelessWidget {
-  const _BusinessAndOrderInfo({required this.business, required this.entry});
+  const _BusinessAndOrderInfo({required this.business, required this.entry, required this.isNarrow});
 
   final BusinessSettings business;
   final OrderHistoryEntry entry;
+  final bool isNarrow;
 
   @override
   Widget build(BuildContext context) {
+    final businessInfo = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          business.businessName.toUpperCase(),
+          style: const TextStyle(
+            color: InvoiceDocument._brandGreen,
+            fontSize: 14,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        _IconLine(icon: Icons.location_on_outlined, text: business.address),
+        _IconLine(icon: Icons.call_outlined, text: business.phoneNumber),
+        if (business.email != null) _IconLine(icon: Icons.mail_outline, text: business.email!),
+      ],
+    );
+
+    final orderInfo = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _LabeledLine(
+          icon: Icons.description_outlined,
+          label: 'Invoice No.',
+          value: entry.invoiceNumber ?? '-',
+        ),
+        _LabeledLine(
+          icon: Icons.shopping_cart_outlined,
+          label: 'Order No.',
+          value: entry.orderNumber,
+        ),
+        _LabeledLine(
+          icon: Icons.calendar_today_outlined,
+          label: 'Order Date',
+          value: DateFormat('dd MMM yyyy').format(entry.createdAt),
+        ),
+        _LabeledLine(
+          icon: Icons.local_shipping_outlined,
+          label: 'Delivery Date',
+          value: entry.deliveryDate != null
+              ? DateFormat('dd MMM yyyy').format(entry.deliveryDate!)
+              : 'Not scheduled',
+        ),
+      ],
+    );
+
+    if (isNarrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [businessInfo, const SizedBox(height: 16), orderInfo],
+      );
+    }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                business.businessName.toUpperCase(),
-                style: const TextStyle(
-                  color: InvoiceDocument._brandGreen,
-                  fontSize: 14,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 6),
-              _IconLine(icon: Icons.location_on_outlined, text: business.address),
-              _IconLine(icon: Icons.call_outlined, text: business.phoneNumber),
-              if (business.email != null) _IconLine(icon: Icons.mail_outline, text: business.email!),
-            ],
-          ),
-        ),
+        Expanded(child: businessInfo),
         const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _LabeledLine(
-                icon: Icons.description_outlined,
-                label: 'Invoice No.',
-                value: entry.invoiceNumber ?? '-',
-              ),
-              _LabeledLine(
-                icon: Icons.shopping_cart_outlined,
-                label: 'Order No.',
-                value: entry.orderNumber,
-              ),
-              _LabeledLine(
-                icon: Icons.calendar_today_outlined,
-                label: 'Order Date',
-                value: DateFormat('dd MMM yyyy').format(entry.createdAt),
-              ),
-              _LabeledLine(
-                icon: Icons.local_shipping_outlined,
-                label: 'Delivery Date',
-                value: entry.deliveryDate != null
-                    ? DateFormat('dd MMM yyyy').format(entry.deliveryDate!)
-                    : 'Not scheduled',
-              ),
-            ],
-          ),
-        ),
+        Expanded(child: orderInfo),
       ],
     );
   }
@@ -292,32 +335,38 @@ class _LabeledLine extends StatelessWidget {
 }
 
 class _AddressRow extends StatelessWidget {
-  const _AddressRow({required this.restaurant});
+  const _AddressRow({required this.restaurant, required this.isNarrow});
 
   final RestaurantAccount restaurant;
+  final bool isNarrow;
 
   @override
   Widget build(BuildContext context) {
+    final billTo = _AddressCard(
+      icon: Icons.person_outline,
+      label: 'BILL TO',
+      name: restaurant.restaurantName,
+      address: restaurant.billingAddress ?? 'Not set',
+    );
+    final deliverTo = _AddressCard(
+      icon: Icons.location_on_outlined,
+      label: 'DELIVERY ADDRESS',
+      name: restaurant.restaurantName,
+      address: restaurant.deliveryAddress ?? restaurant.billingAddress ?? 'Not set',
+    );
+
+    if (isNarrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [billTo, const SizedBox(height: 12), deliverTo],
+      );
+    }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _AddressCard(
-            icon: Icons.person_outline,
-            label: 'BILL TO',
-            name: restaurant.restaurantName,
-            address: restaurant.billingAddress ?? 'Not set',
-          ),
-        ),
+        Expanded(child: billTo),
         const SizedBox(width: 12),
-        Expanded(
-          child: _AddressCard(
-            icon: Icons.location_on_outlined,
-            label: 'DELIVERY ADDRESS',
-            name: restaurant.restaurantName,
-            address: restaurant.deliveryAddress ?? restaurant.billingAddress ?? 'Not set',
-          ),
-        ),
+        Expanded(child: deliverTo),
       ],
     );
   }
@@ -450,14 +499,33 @@ class _ItemTable extends StatelessWidget {
 }
 
 class _TotalsRow extends StatelessWidget {
-  const _TotalsRow({required this.itemCount, required this.totalQuantity, required this.entry});
+  const _TotalsRow({
+    required this.itemCount,
+    required this.totalQuantity,
+    required this.entry,
+    required this.isNarrow,
+  });
 
   final int itemCount;
   final int totalQuantity;
   final OrderHistoryEntry entry;
+  final bool isNarrow;
 
   @override
   Widget build(BuildContext context) {
+    final itemsStat = _TotalStat(icon: Icons.inventory_2_outlined, label: 'TOTAL ITEMS', value: '$itemCount');
+    final quantityStat = _TotalStat(
+      icon: Icons.scale_outlined,
+      label: 'TOTAL QUANTITY',
+      value: '$totalQuantity Units',
+    );
+    final amountStat = _TotalStat(
+      icon: Icons.currency_rupee,
+      label: 'TOTAL AMOUNT',
+      value: '₹${NumberFormat('#,##0').format(entry.invoiceTotal)}',
+      valueColor: InvoiceDocument._brandGreen,
+    );
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -465,22 +533,20 @@ class _TotalsRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: InvoiceDocument._borderGreen),
       ),
-      child: Row(
-        children: [
-          Expanded(child: _TotalStat(icon: Icons.inventory_2_outlined, label: 'TOTAL ITEMS', value: '$itemCount')),
-          Expanded(
-            child: _TotalStat(icon: Icons.scale_outlined, label: 'TOTAL QUANTITY', value: '$totalQuantity Units'),
-          ),
-          Expanded(
-            child: _TotalStat(
-              icon: Icons.currency_rupee,
-              label: 'TOTAL AMOUNT',
-              value: '₹${NumberFormat('#,##0').format(entry.invoiceTotal)}',
-              valueColor: InvoiceDocument._brandGreen,
+      // Below the breakpoint, 3 side-by-side stats squeeze too tight to
+      // read — items/quantity share a row, amount gets its own full row.
+      child: isNarrow
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [Expanded(child: itemsStat), Expanded(child: quantityStat)]),
+                const SizedBox(height: 14),
+                amountStat,
+              ],
+            )
+          : Row(
+              children: [Expanded(child: itemsStat), Expanded(child: quantityStat), Expanded(child: amountStat)],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -529,10 +595,11 @@ class _TotalStat extends StatelessWidget {
 /// payment path is the in-app Pay Now button (Razorpay), unaffected by
 /// this section.
 class _PaymentSection extends StatelessWidget {
-  const _PaymentSection({required this.business, required this.entry});
+  const _PaymentSection({required this.business, required this.entry, required this.isNarrow});
 
   final BusinessSettings business;
   final OrderHistoryEntry entry;
+  final bool isNarrow;
 
   @override
   Widget build(BuildContext context) {
@@ -540,70 +607,72 @@ class _PaymentSection extends StatelessWidget {
         'upi://pay?pa=${business.upiId}&pn=${Uri.encodeComponent(business.businessName)}'
         '&am=${entry.invoiceTotal?.toStringAsFixed(2)}&cu=INR&tn=${Uri.encodeComponent('FreshMandi ${entry.orderNumber}')}';
 
+    final qrBlock = Column(
+      children: [
+        const Text(
+          'SCAN QR CODE TO PAY',
+          style: TextStyle(
+            color: InvoiceDocument._brandGreen,
+            fontSize: 9.5,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        QrImageView(data: upiUri, size: 96, backgroundColor: Colors.white),
+      ],
+    );
+
+    final detailsBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'UPI ID',
+          style: TextStyle(color: InvoiceDocument._muted, fontSize: 9.5, fontFamily: 'Poppins'),
+        ),
+        Text(
+          business.upiId!,
+          style: const TextStyle(
+            color: InvoiceDocument._ink,
+            fontSize: 13,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.info_outline, size: 13, color: InvoiceDocument._muted),
+            const SizedBox(width: 6),
+            const Expanded(
+              child: Text(
+                'This QR is for manual/offline payment reference only. Payments made '
+                'in-app via Pay Now are confirmed automatically.',
+                style: TextStyle(color: InvoiceDocument._muted, fontSize: 10, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         border: Border.all(color: InvoiceDocument._borderGreen),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Column(
-            children: [
-              const Text(
-                'SCAN QR CODE TO PAY',
-                style: TextStyle(
-                  color: InvoiceDocument._brandGreen,
-                  fontSize: 9.5,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              QrImageView(data: upiUri, size: 96, backgroundColor: Colors.white),
-            ],
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'UPI ID',
-                  style: TextStyle(color: InvoiceDocument._muted, fontSize: 9.5, fontFamily: 'Poppins'),
-                ),
-                Text(
-                  business.upiId!,
-                  style: const TextStyle(
-                    color: InvoiceDocument._ink,
-                    fontSize: 13,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.info_outline, size: 13, color: InvoiceDocument._muted),
-                    const SizedBox(width: 6),
-                    const Expanded(
-                      child: Text(
-                        'This QR is for manual/offline payment reference only. Payments made '
-                        'in-app via Pay Now are confirmed automatically.',
-                        style: TextStyle(color: InvoiceDocument._muted, fontSize: 10, fontFamily: 'Poppins'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+      // A 96px QR beside a description column gets too tight below the
+      // breakpoint — stack them instead of squeezing the text.
+      child: isNarrow
+          ? Column(children: [qrBlock, const SizedBox(height: 16), detailsBlock])
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [qrBlock, const SizedBox(width: 20), Expanded(child: detailsBlock)],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

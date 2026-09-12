@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import '../../core/supabase/supabase_client.dart';
+import '../../features/notifications/notification_trigger.dart';
 import '../../models/admin_customer_option.dart';
 import '../../models/sale_line_item.dart';
 
@@ -130,6 +133,12 @@ class AddSaleRepository {
         'ref_id': orderId,
       });
     }
+
+    // Fire-and-forget — the invoice itself is already generated and saved
+    // by this point, so a slow/failing push must never hold up Add Sale's
+    // own success flow.
+    unawaited(triggerNotification(supabase, type: 'invoice', orderId: orderId));
+    unawaited(triggerNotification(supabase, type: 'payment', orderId: orderId));
   }
 
   Future<void> deleteSale(String orderId) async {

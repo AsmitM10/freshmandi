@@ -66,5 +66,17 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Lets iOS wake the app briefly to handle a push that arrives while
+	     it's backgrounded (needed for background/terminated-state
+	     notification delivery, per firebase_messaging's own setup docs).
+	     Still requires an APNs key uploaded to the Firebase project
+	     (Project settings -> Cloud Messaging -> Apple app configuration)
+	     from an Apple Developer account before iOS push actually works —
+	     that step needs your Apple Developer credentials and can't be
+	     done from here. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

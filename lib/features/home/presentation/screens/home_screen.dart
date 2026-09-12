@@ -13,6 +13,7 @@ import '../../../../shared/widgets/category_card.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/search_bar_field.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../notifications/presentation/providers/notifications_providers.dart';
 import '../../../items/domain/item_category.dart';
 import '../../../items/presentation/providers/items_providers.dart';
 import '../../../orders/presentation/providers/cart_providers.dart';
@@ -76,18 +77,7 @@ class HomeScreen extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        // Notification behavior/screen isn't defined anywhere
-                        // in the spec (section Z #16) — icon shown, no action
-                        // wired yet.
-                        SvgPicture.asset(
-                          'assets/icons/icon_notification.svg',
-                          width: 24,
-                          height: 24,
-                          colorFilter: const ColorFilter.mode(
-                            AppColors.placeholder,
-                            BlendMode.srcIn,
-                          ),
-                        ),
+                        _NotificationBell(unreadCount: ref.watch(unreadNotificationCountProvider)),
                         const SizedBox(width: 12),
                         CartButton(
                           itemCount: cartCount,
@@ -158,6 +148,67 @@ class HomeScreen extends ConsumerWidget {
               child: SizedBox(height: AppSpacing.bottomNavHeight + AppSpacing.base),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The bell icon — now wired to the Notifications page (see
+/// AppRoutes.notifications) with a small red dot while there's at least
+/// one unread notification.
+class _NotificationBell extends StatelessWidget {
+  const _NotificationBell({required this.unreadCount});
+
+  final int unreadCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => context.push(AppRoutes.notifications),
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              SvgPicture.asset(
+                'assets/icons/icon_notification.svg',
+                width: 24,
+                height: 24,
+                colorFilter: const ColorFilter.mode(AppColors.placeholder, BlendMode.srcIn),
+              ),
+              if (unreadCount > 0)
+                Positioned(
+                  right: 0,
+                  top: -2,
+                  child: Container(
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: const BoxDecoration(
+                      color: AppColors.accentRed,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        unreadCount > 99 ? '99+' : '$unreadCount',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

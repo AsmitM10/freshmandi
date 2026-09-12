@@ -9,9 +9,11 @@ import '../../features/auth/presentation/screens/status_screens.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/screens/terms_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
+import '../../features/history/presentation/screens/invoice_view_screen.dart';
 import '../../features/history/presentation/screens/order_detail_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/items/presentation/screens/shop_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/orders/presentation/screens/cart_screen.dart';
 import '../../features/orders/presentation/screens/order_failure_screen.dart';
 import '../../features/orders/presentation/screens/order_success_screen.dart';
@@ -188,6 +190,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.voiceOrder,
         builder: (context, state) => const VoiceOrderScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.invoiceView}/:orderId',
+        builder: (context, state) => InvoiceViewScreen(orderId: state.pathParameters['orderId']!),
       ),
       // Business Console (admin app) — own bottom-nav shell (Home/Orders/
       // Items/Customers/Money), reached only via the same admin-detected
