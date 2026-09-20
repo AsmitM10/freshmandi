@@ -49,6 +49,8 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   final _ownerNameController = TextEditingController();
   final _phoneController = TextEditingController();
 
+String get _e164Phone => Validators.toE164(_phoneController.text.trim());
+
   _RegistrationStep _step = _RegistrationStep.form;
   SelectedDocument? _document;
 
@@ -88,42 +90,50 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     super.dispose();
   }
 
-  String get _e164Phone => Validators.toE164(_phoneController.text.trim());
-
   Future<void> _pickFssaiFile() async {
-    setState(() => _isPickingFile = true);
-    try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
-        withData: true,
-      );
-      if (result == null || result.files.isEmpty) return;
-      final picked = result.files.single;
-      final validation = FileValidators.validate(
-        bytes: picked.bytes,
-        sizeInBytes: picked.size,
-      );
-      if (!validation.isValid) {
-        setState(() {
-          _fileError = validation.errorMessage;
-          _document = null;
-        });
-        return;
-      }
+  setState(() => _isPickingFile = true);
+
+  try {
+    final files = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+
+    if (files.isEmpty) return;
+
+    final picked = files.single;
+
+    // Read the file bytes using the new file_picker API
+    final bytes = await picked.readAsBytes();
+
+   final validation = FileValidators.validate(
+  bytes: bytes,
+  sizeInBytes: bytes.length,
+);
+
+    if (!validation.isValid) {
       setState(() {
-        _fileError = null;
-        _document = SelectedDocument(
-          fileName: picked.name,
-          bytes: picked.bytes!,
-          sizeInBytes: picked.size,
-          mimeType: validation.mimeType!,
-        );
+        _fileError = validation.errorMessage;
+        _document = null;
       });
-    } finally {
-      if (mounted) setState(() => _isPickingFile = false);
+      return;
+    }
+
+    setState(() {
+      _fileError = null;
+      _document = SelectedDocument(
+        fileName: picked.name,
+        bytes: bytes,
+        sizeInBytes: bytes.length,
+        mimeType: validation.mimeType!,
+      );
+    });
+  } finally {
+    if (mounted) {
+      setState(() => _isPickingFile = false);
     }
   }
+}
 
   bool _validateForm() {
     final nameError = Validators.restaurantName(_restaurantNameController.text);

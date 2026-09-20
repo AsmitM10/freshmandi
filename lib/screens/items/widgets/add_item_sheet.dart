@@ -144,7 +144,7 @@ class _ItemFormSheetState extends ConsumerState<_ItemFormSheet> {
                 final requested = _categoryId ?? (categories.isNotEmpty ? categories.first.id : null);
                 final validId = categories.any((c) => c.id == requested) ? requested : null;
                 return DropdownButtonFormField<String>(
-                  value: validId,
+                  initialValue: validId,
                   decoration: const InputDecoration(labelText: 'Category'),
                   items: [
                     for (final c in categories) DropdownMenuItem(value: c.id, child: Text('${c.emoji} ${c.name}')),

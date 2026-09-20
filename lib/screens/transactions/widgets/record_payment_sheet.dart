@@ -99,7 +99,7 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
                 // asserting on a stale value.
                 final validId = customers.any((c) => c.id == _customerId) ? _customerId : null;
                 return DropdownButtonFormField<String?>(
-                  value: validId,
+                  initialValue: validId,
                   isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Customer (optional)'),
                   items: [
@@ -113,7 +113,7 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
             ),
             const SizedBox(height: AppSpacing.s3),
             DropdownButtonFormField<String>(
-              value: _category,
+              initialValue: _category,
               isExpanded: true,
               decoration: const InputDecoration(labelText: 'Category'),
               items: [for (final c in _categories) DropdownMenuItem(value: c, child: Text(c))],
@@ -127,7 +127,7 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
             ),
             const SizedBox(height: AppSpacing.s3),
             DropdownButtonFormField<String>(
-              value: _method,
+              initialValue: _method,
               decoration: const InputDecoration(labelText: 'Method'),
               items: [for (final m in _methods) DropdownMenuItem(value: m, child: Text(m))],
               onChanged: (v) => setState(() => _method = v!),

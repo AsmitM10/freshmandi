@@ -53,7 +53,7 @@ class ItemsRepository {
       'item_id': itemId,
       'price': price,
       'mrp': mrp,
-      if (stock != null) 'stock': stock,
+      'stock': ?stock,
     });
 
     final row = await supabase.from('admin_items_console').select().eq('id', itemId).single();

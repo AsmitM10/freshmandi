@@ -96,7 +96,7 @@ class ItemsScreen extends ConsumerWidget {
                   child: ListView.separated(
                     padding: const EdgeInsets.only(bottom: 88),
                     itemCount: items.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    separatorBuilder: (_, _) => const Divider(height: 1),
                     itemBuilder: (context, index) => _ItemRow(item: items[index]),
                   ),
                 );

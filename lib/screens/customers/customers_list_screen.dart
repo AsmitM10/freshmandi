@@ -39,7 +39,7 @@ class CustomersListScreen extends ConsumerWidget {
                   onRefresh: () async => ref.invalidate(allCustomersProvider),
                   child: ListView.separated(
                     itemCount: customers.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    separatorBuilder: (_, _) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final c = customers[index];
                       return ListTile(
