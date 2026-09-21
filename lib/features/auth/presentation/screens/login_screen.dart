@@ -55,11 +55,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   /// The one admin's phone field is a client-side UI trigger only — not
   /// sent to Supabase as a real phone number. See AppConfig.adminPhoneDigits.
-  bool get _isAdminPhone => _phoneController.text.trim() == AppConfig.adminPhoneDigits;
+  bool get _isAdminPhone =>
+      _phoneController.text.trim() == AppConfig.adminPhoneDigits;
 
   /// Same trigger mechanism as [_isAdminPhone], for the dev/test
   /// restaurant account. See AppConfig.testRestaurantPhoneDigits.
-  bool get _isTestRestaurantPhone => _phoneController.text.trim() == AppConfig.testRestaurantPhoneDigits;
+  bool get _isTestRestaurantPhone =>
+      _phoneController.text.trim() == AppConfig.testRestaurantPhoneDigits;
 
   Future<void> _sendOtp() async {
     if (_isSendingOtp || _resendCooldown > 0) return;
@@ -135,7 +137,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
     if (!_isOtpSent) {
       // ignore: avoid_print
-      print('[LOGIN] blocked: _isOtpSent is false — OTP was never sent for this number');
+      print(
+        '[LOGIN] blocked: _isOtpSent is false — OTP was never sent for this number',
+      );
       showAppSnackBar(context, 'Send the OTP first');
       return;
     }
@@ -189,7 +193,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .read(authRepositoryProvider)
           .verifyPhoneOtp(e164Phone: _e164Phone, otp: _otpCode);
       // ignore: avoid_print
-      print('[LOGIN] otp verified, session=${ref.read(supabaseClientProvider).auth.currentSession != null}');
+      print(
+        '[LOGIN] otp verified, session=${ref.read(supabaseClientProvider).auth.currentSession != null}',
+      );
       await _completeRestaurantLogin();
     } catch (error, stack) {
       // ignore: avoid_print
@@ -217,7 +223,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // repository call itself is proven reliable. Still invalidate the
       // provider afterward (not awaited) so Home's own
       // ref.watch(currentRestaurantProvider) picks up a fresh value.
-      final restaurant = await ref.read(restaurantRepositoryProvider).fetchForCurrentUser();
+      final restaurant = await ref
+          .read(restaurantRepositoryProvider)
+          .fetchForCurrentUser();
       ref.invalidate(currentRestaurantProvider);
       // ignore: avoid_print
       print('[LOGIN] restaurant fetched: ${restaurant?.accountStatus}');
@@ -239,7 +247,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       if (!mounted) return;
       // ignore: avoid_print
-      print('[LOGIN] navigating to ${restaurant.accountStatus.destinationRoute}');
+      print(
+        '[LOGIN] navigating to ${restaurant.accountStatus.destinationRoute}',
+      );
       context.go(restaurant.accountStatus.destinationRoute);
     } catch (error, stack) {
       // ignore: avoid_print
@@ -256,7 +266,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    const imageSize = 200.0;
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final keyboardIsVisible = viewInsets.bottom > 0;
+    final headerHeight = keyboardIsVisible ? 220.0 : 304.0;
+    final imageSize = keyboardIsVisible ? 150.0 : 200.0;
 
     return Scaffold(
       backgroundColor: AppColors.primary,
@@ -265,7 +278,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Column(
           children: [
             SizedBox(
-              height: 304,
+              height: headerHeight,
               child: Stack(
                 children: [
                   Positioned(
@@ -278,8 +291,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   Positioned(
-                    top: 82,
-                    left: (screenWidth - imageSize).clamp(0, double.infinity) / 2,
+                    top: keyboardIsVisible ? 34 : 82,
+                    left:
+                        (screenWidth - imageSize).clamp(0, double.infinity) / 2,
                     child: Image.asset(
                       'lib/assets/images/login.png',
                       width: imageSize,
@@ -308,126 +322,135 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ],
                 ),
                 child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: EdgeInsets.fromLTRB(
                     16,
-                    24,
+                    keyboardIsVisible ? 28 : 24,
                     16,
-                    MediaQuery.of(context).viewInsets.bottom + 16,
+                    viewInsets.bottom + 16,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Welcome',
-                              style: TextStyle(
-                                color: Color(0xFF4A8754),
-                                fontSize: 24,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            TextSpan(
-                              text: ' back!',
-                              style: TextStyle(
-                                color: Color(0xFF242424),
-                                fontSize: 24,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'login to access your account',
-                        style: TextStyle(
-                          color: Color(0xFF242424),
-                          fontSize: 14,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      FMPhoneField(
-                        controller: _phoneController,
-                        errorText: _phoneError,
-                        enabled: !_isVerifying,
-                        onChanged: (_) {
-                          if (_isOtpSent) {
-                            // Phone changed after an OTP was already sent —
-                            // that OTP no longer applies to this number.
-                            setState(() {
-                              _isOtpSent = false;
-                              _otpCode = '';
-                              _otpResetToken++;
-                              _cooldownTimer?.cancel();
-                              _resendCooldown = 0;
-                            });
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      Opacity(
-                        opacity: _isOtpSent ? 1 : 0.5,
-                        child: IgnorePointer(
-                          ignoring: !_isOtpSent,
-                          child: FMOTPInput(
-                            resetToken: _otpResetToken,
-                            enabled: _isOtpSent && !_isVerifying,
-                            onChanged: (value) => setState(() {
-                              _otpCode = value;
-                              _otpError = null;
-                            }),
-                          ),
-                        ),
-                      ),
-                      if (_otpError != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            _otpError!,
-                            style: const TextStyle(
-                              color: AppColors.error,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: _resendCooldown > 0 ? null : _sendOtp,
-                          child: _isSendingOtp
-                              ? const SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Text(
-                                  _resendCooldown > 0
-                                      ? 'Resend OTP in ${_resendCooldown}s'
-                                      : (_isOtpSent ? 'Resend OTP' : 'Send OTP'),
-                                  style: const TextStyle(
-                                    color: Color(0xFF355C7D),
-                                    fontSize: 12,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400,
-                                    decoration: TextDecoration.underline,
-                                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Welcome',
+                                style: TextStyle(
+                                  color: Color(0xFF4A8754),
+                                  fontSize: 24,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
                                 ),
+                              ),
+                              TextSpan(
+                                text: ' back!',
+                                style: TextStyle(
+                                  color: Color(0xFF242424),
+                                  fontSize: 24,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      FMPrimaryButton(
-                        label: 'Login',
-                        isLoading: _isVerifying,
-                        onPressed: _login,
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        const Text(
+                          'login to access your account',
+                          style: TextStyle(
+                            color: Color(0xFF242424),
+                            fontSize: 14,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        FMPhoneField(
+                          controller: _phoneController,
+                          errorText: _phoneError,
+                          enabled: !_isVerifying,
+                          onChanged: (_) {
+                            if (_isOtpSent) {
+                              // Phone changed after an OTP was already sent —
+                              // that OTP no longer applies to this number.
+                              setState(() {
+                                _isOtpSent = false;
+                                _otpCode = '';
+                                _otpResetToken++;
+                                _cooldownTimer?.cancel();
+                                _resendCooldown = 0;
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        Opacity(
+                          opacity: _isOtpSent ? 1 : 0.5,
+                          child: IgnorePointer(
+                            ignoring: !_isOtpSent,
+                            child: FMOTPInput(
+                              resetToken: _otpResetToken,
+                              enabled: _isOtpSent && !_isVerifying,
+                              onChanged: (value) => setState(() {
+                                _otpCode = value;
+                                _otpError = null;
+                              }),
+                            ),
+                          ),
+                        ),
+                        if (_otpError != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              _otpError!,
+                              style: const TextStyle(
+                                color: AppColors.error,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _resendCooldown > 0 ? null : _sendOtp,
+                            child: _isSendingOtp
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    _resendCooldown > 0
+                                        ? 'Resend OTP in ${_resendCooldown}s'
+                                        : (_isOtpSent
+                                              ? 'Resend OTP'
+                                              : 'Send OTP'),
+                                    style: const TextStyle(
+                                      color: Color(0xFF355C7D),
+                                      fontSize: 12,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w400,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        FMPrimaryButton(
+                          label: 'Login',
+                          isLoading: _isVerifying,
+                          onPressed: _login,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

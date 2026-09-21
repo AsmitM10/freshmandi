@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -130,11 +133,30 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _ProfileCard extends StatelessWidget {
+class _ProfileCard extends StatefulWidget {
   const _ProfileCard({required this.restaurant, required this.onEditProfile});
 
   final RestaurantAccount restaurant;
   final VoidCallback onEditProfile;
+
+  @override
+  State<_ProfileCard> createState() => _ProfileCardState();
+}
+
+class _ProfileCardState extends State<_ProfileCard> {
+  Uint8List? _profileImageBytes;
+
+  Future<void> _pickProfileImage() async {
+    final files = await FilePicker.pickFiles(
+      type: FileType.image,
+    );
+    if (files.isEmpty) return;
+
+    final bytes = await files.single.readAsBytes();
+    if (mounted) {
+      setState(() => _profileImageBytes = bytes);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,16 +178,28 @@ class _ProfileCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
+                      image: _profileImageBytes == null
+                          ? null
+                          : DecorationImage(
+                              image: MemoryImage(_profileImageBytes!),
+                              fit: BoxFit.cover,
+                            ),
                     ),
-                    child: const Icon(Icons.storefront, color: Colors.white, size: 40),
+                    child: _profileImageBytes == null
+                        ? const Icon(Icons.storefront, color: Colors.white, size: 40)
+                        : null,
                   ),
                   Positioned(
                     right: -2,
                     bottom: -2,
-                    child: InkWell(
-                      onTap: onEditProfile,
-                      customBorder: const CircleBorder(),
-                      child: SvgPicture.asset('assets/icons/icon_camera_badge.svg', width: 28, height: 28),
+                    child: Material(
+                      color: Colors.transparent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        onTap: _pickProfileImage,
+                        customBorder: const CircleBorder(),
+                        child: SvgPicture.asset('assets/icons/icon_camera_badge.svg', width: 28, height: 28),
+                      ),
                     ),
                   ),
                 ],
@@ -176,7 +210,7 @@ class _ProfileCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      restaurant.restaurantName,
+                      widget.restaurant.restaurantName,
                       style: TextStyle(
                         color: AppColors.ctaText,
                         fontSize: 20,
@@ -206,7 +240,9 @@ class _ProfileCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            restaurant.deliveryAddress ?? restaurant.billingAddress ?? 'Address not set',
+                            widget.restaurant.deliveryAddress ??
+                              widget.restaurant.billingAddress ??
+                              'Address not set',
                             style: TextStyle(
                               color: AppColors.ctaText.withValues(alpha: 0.85),
                               fontSize: 12,
@@ -233,7 +269,7 @@ class _ProfileCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: onEditProfile,
+                onTap: widget.onEditProfile,
                 child: Center(
                   child: Text(
                     'Edit Profile',

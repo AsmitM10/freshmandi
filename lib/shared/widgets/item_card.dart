@@ -158,7 +158,7 @@ class _ItemImage extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: CachedNetworkImage(
         imageUrl: imageUrl,
-        fit: BoxFit.fill,
+        fit: BoxFit.contain,
         placeholder: (context, _) => const Center(
           child: SizedBox(
             width: 16,

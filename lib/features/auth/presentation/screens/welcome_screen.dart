@@ -80,7 +80,7 @@ class WelcomeScreen extends StatelessWidget {
             Align(
               alignment: Alignment.bottomCenter,
               child: SizedBox(
-                width: 375,
+                width: double.infinity,
                 height: 508,
                 child: Container(
                   decoration: const BoxDecoration(
@@ -98,7 +98,7 @@ class WelcomeScreen extends StatelessWidget {
                     ],
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -107,8 +107,8 @@ class WelcomeScreen extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             color: Color(0xFF242424),
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         const Text(
@@ -116,8 +116,8 @@ class WelcomeScreen extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             color: Color(0xFF4A8754),
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -127,15 +127,15 @@ class WelcomeScreen extends StatelessWidget {
                             fontFamily: 'Poppins',
                             color: Color(0xFF242424),
                             fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                            height: 1.6,
+                            fontWeight: FontWeight.w400,
+                            height: 1.5,
                           ),
                           textAlign: TextAlign.justify,
                         ),
                         const SizedBox(height: 20),
                         SizedBox(
                           width: double.infinity,
-                          height: 54,
+                          height: 48,
                           child: ElevatedButton(
                             onPressed: () => context.push(AppRoutes.terms),
                             style: ElevatedButton.styleFrom(
@@ -158,7 +158,7 @@ class WelcomeScreen extends StatelessWidget {
                         const SizedBox(height: 8),
                         SizedBox(
                           width: double.infinity,
-                          height: 54,
+                          height: 48,
                           child: OutlinedButton(
                             onPressed: () => context.push(AppRoutes.login),
                             style: OutlinedButton.styleFrom(

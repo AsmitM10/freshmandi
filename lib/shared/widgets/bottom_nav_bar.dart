@@ -56,57 +56,62 @@ class BottomNavBar extends StatelessWidget {
               ),
               child: SafeArea(
                 top: false,
-                child: Row(
-                  // Top-aligned rather than centered — same structure as
-                  // the admin AppShell's nav bar (widgets/app_shell.dart):
-                  // icons sit close to the top edge (each _NavItem carries
-                  // its own top padding) instead of floating mid-height.
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _NavItem(
-                        svgAsset: currentIndex == 0
-                            ? 'assets/icons/nav_home.svg'
-                            : 'assets/icons/nav_home_outline.svg',
-                        label: l10n.navHome,
-                        isActive: currentIndex == 0,
-                        onTap: () => onTabSelected(0),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    // Top-aligned rather than centered — same structure as
+                    // the admin AppShell's nav bar (widgets/app_shell.dart):
+                    // icons sit close to the top edge (each _NavItem carries
+                    // its own top padding) instead of floating mid-height.
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _NavItem(
+                          svgAsset: currentIndex == 0
+                              ? 'assets/icons/nav_home.svg'
+                              : 'assets/icons/nav_home_outline.svg',
+                          label: l10n.navHome,
+                          isActive: currentIndex == 0,
+                          onTap: () => onTabSelected(0),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: _NavItem(
-                        svgAsset: currentIndex == 1
-                            ? 'assets/icons/nav_shop_filled.svg'
-                            : 'assets/icons/nav_shop.svg',
-                        label: l10n.navShop,
-                        isActive: currentIndex == 1,
-                        onTap: () => onTabSelected(1),
+                      Expanded(
+                        child: _NavItem(
+                          svgAsset: currentIndex == 1
+                              ? 'assets/icons/nav_shop_filled.svg'
+                              : 'assets/icons/nav_shop.svg',
+                          label: l10n.navShop,
+                          isActive: currentIndex == 1,
+                          onTap: () => onTabSelected(1),
+                        ),
                       ),
-                    ),
-                    const SizedBox(
-                      width: AppSpacing.voiceButtonInnerSize + AppSpacing.voiceButtonOuterPadding * 2,
-                    ),
-                    Expanded(
-                      child: _NavItem(
-                        svgAsset: currentIndex == 2
-                            ? 'assets/icons/nav_history_filled.svg'
-                            : 'assets/icons/nav_history.svg',
-                        label: l10n.navHistory,
-                        isActive: currentIndex == 2,
-                        onTap: () => onTabSelected(2),
+                      const SizedBox(
+                        width:
+                            AppSpacing.voiceButtonInnerSize +
+                            AppSpacing.voiceButtonOuterPadding * 2,
                       ),
-                    ),
-                    Expanded(
-                      child: _NavItem(
-                        svgAsset: currentIndex == 3
-                            ? 'assets/icons/nav_settings_filled.svg'
-                            : 'assets/icons/nav_settings.svg',
-                        label: l10n.navSettings,
-                        isActive: currentIndex == 3,
-                        onTap: () => onTabSelected(3),
+                      Expanded(
+                        child: _NavItem(
+                          svgAsset: currentIndex == 2
+                              ? 'assets/icons/nav_history_filled.svg'
+                              : 'assets/icons/nav_history.svg',
+                          label: l10n.navHistory,
+                          isActive: currentIndex == 2,
+                          onTap: () => onTabSelected(2),
+                        ),
                       ),
-                    ),
-                  ],
+                      Expanded(
+                        child: _NavItem(
+                          svgAsset: currentIndex == 3
+                              ? 'assets/icons/nav_settings_filled.svg'
+                              : 'assets/icons/nav_settings.svg',
+                          label: l10n.navSettings,
+                          isActive: currentIndex == 3,
+                          onTap: () => onTabSelected(3),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -196,7 +201,11 @@ class _VoiceButton extends StatelessWidget {
                 color: AppColors.secondary,
                 shape: BoxShape.circle,
               ),
-              child: SvgPicture.asset('assets/icons/icon_mic.svg', width: 50, height: 24),
+              child: SvgPicture.asset(
+                'assets/icons/icon_mic.svg',
+                width: 50,
+                height: 24,
+              ),
             ),
           ),
         ),

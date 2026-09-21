@@ -47,7 +47,11 @@ class CategoryCard extends StatelessWidget {
           color: AppColors.surfaceWhite,
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
-            BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 2)),
+            BoxShadow(
+              color: Color(0x3F000000),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
           ],
         ),
         child: Stack(
@@ -55,7 +59,7 @@ class CategoryCard extends StatelessWidget {
             Positioned.fill(
               child: Image.asset(
                 _assetFor(category),
-                fit: BoxFit.cover,
+                fit: category == ItemCategory.fruits ? BoxFit.contain : BoxFit.cover,
                 alignment: Alignment.bottomCenter,
               ),
             ),
@@ -67,6 +71,8 @@ class CategoryCard extends StatelessWidget {
                 child: Text(
                   category.localizedLabel(AppLocalizations.of(context)),
                   style: AppTextStyles.categoryLabel.copyWith(
+                    fontSize: 12,
+                    height: 1.2,
                     color: AppColors.secondaryText,
                     fontFamilyFallback: AppTextStyles.devanagariFallback,
                   ),
