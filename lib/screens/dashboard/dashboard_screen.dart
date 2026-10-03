@@ -83,7 +83,7 @@ class DashboardScreen extends ConsumerWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         mainAxisSpacing: AppSpacing.s3,
                         crossAxisSpacing: AppSpacing.s3,
-                        childAspectRatio: 1.5,
+                        childAspectRatio: 1.3,
                         children: [
                           StatCard(
                             label: "Today's Orders",
@@ -166,7 +166,7 @@ class _OverviewStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 90,
+      constraints: const BoxConstraints(minHeight: 90),
       clipBehavior: Clip.antiAlias,
       padding: const EdgeInsets.fromLTRB(12, 18, 12, 12),
       decoration: ShapeDecoration(

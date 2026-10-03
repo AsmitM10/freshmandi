@@ -120,8 +120,8 @@ class _Header extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: AppTextStyles.urbanistFontFamily,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
                 color: AppColors.primaryText,
               ),
             ),
